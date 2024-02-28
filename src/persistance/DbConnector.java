@@ -24,19 +24,22 @@ public class DbConnector implements Connector{
 	private String url = "jdbc:mysql://localhost:3306/ZBank";
 	private String userName = "root";
 	private String password = "";
-	private final int CREDIT = 1;
-	private final int DEBIT = 2;
+
 	
 	public String getPassword(int userId) throws BankingException {
 		String query = "select PASSWORD from USER_DETAILS where  USER_ID = ? " ;
 		String passWord = null;
+		
 		try(Connection connection = DriverManager.getConnection(url, userName, password)){
 			PreparedStatement statement = connection.prepareStatement(query);
+			
 			statement.setInt(1,userId);
 			try(ResultSet resultSet = statement.executeQuery()){
+				
 				while(resultSet.next()) {
 					passWord = resultSet.getString(1);
 				}
+				
 				return passWord;
 			}
 		}catch(SQLException e) {
@@ -45,15 +48,16 @@ public class DbConnector implements Connector{
 	}
 	
 	public String getRole(int userId) throws BankingException,InvalidUserException {
+		
 		String query = "select ROLE from USER_DETAILS where USER_ID = ? " ;
 		String role = null;
+		
 		try(Connection connection = DriverManager.getConnection(url, userName, password)){
 			PreparedStatement statement = connection.prepareStatement(query);
 			statement.setInt(1,userId);
 			try(ResultSet resultSet = statement.executeQuery()){
 				if(resultSet.next()) {
 					role = resultSet.getString(1);
-					System.out.println(role);
 				}else {
 					throw new InvalidUserException("No such user");
 				}
@@ -152,8 +156,10 @@ public class DbConnector implements Connector{
 	public long getBalance(long accountNumber) throws BankingException {
 		String query = "select BALANCE from ACCOUNT_DETAILS where ACCOUNT_NUMBER = ?";
 		long balance = 0;
+		
 		try(Connection connection = DriverManager.getConnection(url, userName, password)){
 			PreparedStatement statement = connection.prepareStatement(query);
+			
 			statement.setLong(1,accountNumber);
 			try(ResultSet resultSet = statement.executeQuery()){
 				if(resultSet.next()) {
@@ -173,6 +179,7 @@ public class DbConnector implements Connector{
 		
 		try(Connection connection = DriverManager.getConnection(url, userName, password)){
 			PreparedStatement statement = connection.prepareStatement(query);
+			
 			try(ResultSet resultSet = statement.executeQuery()){
 				return setBranchInMap(resultSet);
 				
@@ -186,11 +193,14 @@ public class DbConnector implements Connector{
 
 	public Map<Integer, Customer> getCustomersDetails(int limit) throws BankingException {
 		String query ="select USER_DETAILS.USER_ID, USER_DETAILS.NAME,USER_DETAILS.MOBILE,USER_DETAILS.EMAIL,USER_DETAILS.AGE,USER_DETAILS.GENDER,USER_DETAILS.STATUS,"
-				+ "CUSTOMER_DETAILS.AADHAR_NUMBER,CUSTOMER_DETAILS.PAN_NUMBER,CUSTOMER_DETAILS.ADDRESS\n"
+				+ "CUSTOMER_DETAILS.AADHAR_NUMBER,CUSTOMER_DETAILS.PAN_NUMBER,CUSTOMER_DETAILS.ADDRESS"
 				+ " from USER_DETAILS join CUSTOMER_DETAILS ON USER_DETAILS.USER_ID = CUSTOMER_DETAILS.USER_ID limit ?";
+		
 		try(Connection connection = DriverManager.getConnection(url, userName, password)){
 			PreparedStatement statement = connection.prepareStatement(query);
+			
 			statement.setInt(1, limit);
+			
 			try(ResultSet resultSet = statement.executeQuery()){
 				return setCustomerInMap(resultSet);
 			}
@@ -201,88 +211,77 @@ public class DbConnector implements Connector{
 		
 	}
 
+	
 	public List<Account> getAccountDetails(int userId) throws BankingException {
 		String query = "select * from ACCOUNT_DETAILS where STATUS = 'ACTIVE' and USER_ID = ?";
 		
 		try(Connection connection = DriverManager.getConnection(url, userName, password)){
 			PreparedStatement statement = connection.prepareStatement(query);
 			statement.setInt(1, userId);
+			
 			try(ResultSet resultSet = statement.executeQuery()){
 			    return	setAccount(resultSet);
 			}
+			
 		}catch(SQLException e) {
 			throw new BankingException(e.getMessage(),e);
 		}
 		
 	}
 
-	public void transferMoney(Transaction transaction) throws BankingException {
-		
-		long accountNo = transaction.getAccountNo();
-		    System.out.println("transfer money");
-			updateTransaction(transaction,DEBIT);
-			
-			long transactionAcc = transaction.getTransactionAccNo();
-			if(getAccountDetail(transactionAcc) != null) {
-			    transaction.setAccountNo(transactionAcc);	
-			    transaction.setTransactionAccNo(accountNo);
-			    updateTransaction(transaction,CREDIT);
-			}
-		
-	}
 	
-	private void updateTransaction(Transaction transaction,int type) throws BankingException {
+	public void updateTransaction(Transaction transaction) throws BankingException {
 		
 		String query = "insert into TRANSACTION_DETAILS (DATE_TIME,USER_ID, ACCOUNT_NUMBER ,TRANSACTION_ACCOUNT_N0,"
 				+ "AMOUNT,TYPE, DESCRIPTION , OPENING_BALANCE,CLOSING_BALANCE)VALUES(?,?,?,?,?,?,?,?,?)";
 		try(Connection connection = DriverManager.getConnection(url, userName, password)){
+			
 			PreparedStatement statement = connection.prepareStatement(query);
-			statement.setLong(1,transaction.getDateTime());
-			System.out.println(transaction.getAccountNo());
-			statement.setInt(2,transaction.getUserId());
+			
 			long accountNumber = transaction.getAccountNo();
+			long closingBalance = transaction.getCloseBalance();
+			
+			statement.setLong(1,transaction.getDateTime());
+	
+			statement.setInt(2,transaction.getUserId());
 			statement.setLong(3, accountNumber);
+			
 			statement.setLong(4, transaction.getTransactionAccNo());
-			int transactionAmount = transaction.getAmount();
-			statement.setInt(5,transactionAmount);
+			statement.setInt(5,transaction.getAmount());
 			
-			long balance =  getBalance(accountNumber);
-			
-			long closingBalance = balance+transactionAmount;
-			
-			String tranactionType = "CREDIT";
-			
-			if(type == 2 ) {
-				tranactionType = "DEBIT";
-				closingBalance = balance-transactionAmount;
-				
-			}
-			statement.setString(6, tranactionType);
-			
+			statement.setString(6, transaction.getType());
 			statement.setString(7, transaction.getDescription());
 			
-			statement.setLong(8,balance);
+			statement.setLong(8, transaction.getOpenBalance());
 			statement.setLong(9, closingBalance);
+			
 			statement.execute();
 			updateBalance(accountNumber,closingBalance);
+			
 		}catch(SQLException e) {
 			throw new BankingException(e.getMessage(),e);
 		}
 		
 	}
 	
+	
 	public Account getAccountDetail(long accountNo) throws BankingException {
 		String query = "select * from ACCOUNT_DETAILS where ACCOUNT_NUMBER = ? ";
 		Account account = new Account();
 		
 		try(Connection connection = DriverManager.getConnection(url, userName, password)){
+			
 			PreparedStatement statement = connection.prepareStatement(query);
 			statement.setLong(1,accountNo);
+			
 			try(ResultSet resultSet =  statement.executeQuery()){
+				
 				if(resultSet.next()) {
 					account.setUserId(resultSet.getInt(1));
+					
 					account.setAccountNo(resultSet.getLong(2));
 					account.setBranchId(resultSet.getInt(3));
+					
 					account.setBalance(resultSet.getInt(4));
 					account.setAccountType(resultSet.getString(5));
 				}
@@ -292,27 +291,28 @@ public class DbConnector implements Connector{
 			throw new BankingException(e.getMessage(),e);
 		}
 	}
+	
+	
 	public boolean isActive(long accountNumber) throws BankingException {
+
 		String query = "select STATUS from ACCOUNT_DETAILS where ACCOUNT_NUMBER = ?";
-		boolean result = false;
+		
 		try(Connection connection = DriverManager.getConnection(url, userName, password)){
 			PreparedStatement statement = connection.prepareStatement(query);
 			statement.setLong(1, accountNumber);
+			
 			try(ResultSet resultSet = statement.executeQuery()){
-				if(resultSet.next()) {
-					if(resultSet.getString(1) == "ACTIVE") {
-						result = true;
-					}
-				}else {
+				if(!resultSet.next()) {
 					throw new BankingException("Account not found ");
 				}
-				
+				return resultSet.getString(1).equals("ACTIVE");	
 			}
-			return result;
 		}catch(SQLException e) {
 			throw new BankingException(e.getMessage(),e);
 		}
 	}
+	
+	
 	public void deactivateAccount(long accountNumber) throws BankingException{
 		String query = "update ACCOUNT_DETAILS set STATUS = 'INACTIVE' where ACCOUNT_NUMBER = ?";
 
@@ -329,9 +329,12 @@ public class DbConnector implements Connector{
 	
 	private void updateBalance(long accountNumber,long balance) throws BankingException {
 		String query ="update ACCOUNT_DETAILS set BALANCE = ? where ACCOUNT_NUMBER = ?";
+		
 		try(Connection connection = DriverManager.getConnection(url, userName, password)){
+			
 			PreparedStatement statement = connection.prepareStatement(query);
 			statement.setLong(1, balance);
+			
 			statement.setLong(2, accountNumber);
 			statement.execute();
 				
@@ -344,14 +347,16 @@ public class DbConnector implements Connector{
 		List<Account> accountList = new ArrayList<Account>();
 		try {
 			while(resultSet.next()) {
+				
 				Account account = new Account();
 				int userId = resultSet.getInt(1);
+				
 				account.setUserId(userId);
 				account.setAccountNo(resultSet.getLong(2));
 				account.setBranchId(resultSet.getInt(3));
+				
 				account.setBalance(resultSet.getInt(4));
 				account.setAccountType(resultSet.getString(5));
-			
 				accountList.add(account);
 			}
 			return accountList;

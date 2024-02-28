@@ -40,11 +40,7 @@ public class ZBank {
 			this.userId = userId;
 		
 	}
-	/*private void authorizedPerson(String user) throws BankingException, UnAuthorizedUserException {
-		if(!role.equals(user)){
-			throw new UnAuthorizedUserException();
-		}
-	}*/
+
 	public void addEmployees(Employee emploee,String password) throws BankingException{
 		password = getHash(password);
 	
@@ -72,33 +68,52 @@ public class ZBank {
 		
 	}
 	
-	public void deposit(Transaction transaction) throws BankingException {
+	public void transferMoney(Transaction transaction,Type type) throws BankingException {
 		long accountNumber = transaction.getAccountNo();
-		System.out.println("deposit");
-		if(dbConnector.isActive(accountNumber)) {
-			long balance = dbConnector.getBalance(accountNumber);
+		long balance = dbConnector.getBalance(accountNumber);
+		int amount = transaction.getAmount();
+		
+		long closingBalance = balance - amount;
+		String transactionType = "DEBIT";
+		boolean state = dbConnector.isActive(accountNumber);
+		
+		if(!state) {
 			
-			if(balance < transaction.getAmount()) {	
-				throw new BankingException("Insufficient balance");
-			}
-			
-			transaction.setDateTime(System.currentTimeMillis());
-			dbConnector.transferMoney(transaction);
-			}
-		else {
-				throw new BankingException("Your account is inactive ");
-			}
-	}
+			throw new BankingException("Your account is inactive ");
+		}
 	
-	public void transferMoney(Transaction transaction) throws BankingException {
+		if(type.ordinal() != 0) {
+			if(balance < amount) {	
+    			throw new BankingException("Insufficient balance");
+   			}
+		}
+		transaction.setOpenBalance(balance);
 		transaction.setDateTime(System.currentTimeMillis());
 		
-		transaction.setUserId(userId);
-		System.out.println(userId);
-		dbConnector.transferMoney(transaction);
+        switch(type.ordinal()) {
+
+        case 0:
+        	transactionType = "CREDIT";
+        	closingBalance = balance + amount;
+   		  	break;   
+   		  	
+        case 2:
+        	dbConnector.updateTransaction(transaction);
+        	long receiverAccount = transaction.getTransactionAccNo();
+        	transaction.setTransactionAccNo(accountNumber);
+        	transaction.setAccountNo(receiverAccount);
+        	transactionType = "CREDIT";
+        	closingBalance = dbConnector.getBalance(receiverAccount) + amount;
+        	
+        	break;
+        	
+   		}
+        transaction.setType(transactionType);
+        transaction.setCloseBalance(closingBalance);
+        dbConnector.updateTransaction(transaction);
+   }
 		
-		
-	}
+
 	
 	public void accountDeactivate(long accountNumber) throws BankingException {
 		dbConnector.deactivateAccount(accountNumber);

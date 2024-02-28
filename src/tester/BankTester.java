@@ -12,6 +12,7 @@ import utilities.Branch;
 import utilities.Customer;
 import utilities.Employee;
 import utilities.Transaction;
+import utilities.Type;
 
 public class BankTester {
 	Logger logger = Logger.getLogger(BankingTester.class.getName());
@@ -172,7 +173,17 @@ public class BankTester {
 				zBank.accountDeactivate(accNo);
 				break;
 			case 6:
+			case 7:
+				
 				Transaction transaction = new Transaction();
+				
+				String description = "Cash deposit";
+				Type type = Type.DEPOSIT;
+			
+				if(select == 7) {
+					description = "Cash Withdrawl";
+					 type = Type.WITHDRAW;
+				}
 				
 				logger.log(Level.INFO,"Enter the userId ");
 				 int userId = bankScanner.nextInt();
@@ -188,11 +199,15 @@ public class BankTester {
 				 int amount = bankScanner.nextInt();
 				 bankScanner.nextLine();
 				 transaction.setAmount(amount);
-				 transaction.setDescription("Cash Deposit");
+				 
+				 
+				 transaction.setDescription(description);
+				 
 				 try {
-				 zBank.deposit(transaction);
-				 }catch(BankingException e) {
-					 e.getMessage();
+				 zBank.transferMoney(transaction,type);
+				 }
+				 catch(BankingException e) {
+					 System.out.println(e.getMessage());
 				 }
 				 
 				break;
@@ -233,7 +248,7 @@ public class BankTester {
 			
 			transaction.setDescription("With in bank transfer ");
 			
-			zBank.transferMoney(transaction);
+			zBank.transferMoney(transaction,Type.WITHIN_BANK);
 			break;
 			
 			}

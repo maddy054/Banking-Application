@@ -40,7 +40,7 @@ public interface Connector {
 	
 	public boolean isActive(long accountNumber) throws BankingException ;
 	
-	public void transferMoney(Transaction transaction) throws  BankingException;
+	public void updateTransaction(Transaction transaction) throws BankingException;
 	
 	public void deactivateAccount(long accountNumber) throws BankingException;
 
