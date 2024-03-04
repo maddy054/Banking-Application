@@ -1,6 +1,6 @@
 package utilities;
 
-public enum Type {
+public enum TransactionType {
 	DEPOSIT,
 	WITHDRAW,
 	WITHIN_BANK,

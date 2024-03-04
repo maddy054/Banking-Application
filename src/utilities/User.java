@@ -1,6 +1,8 @@
 package utilities;
 
 public class User{
+	public void setUserId(int userId) {
+	}
 	public void setName(String name) {
 	}
 	public void setEmail(String email) {
@@ -14,6 +16,10 @@ public class User{
 	public void setGender(String gender) {
 	}
 	public void setRole(String role) {
+	}
+	
+	public int getUserId() {
+		return 0;
 	}
 	public String getName() {
 	 return "";

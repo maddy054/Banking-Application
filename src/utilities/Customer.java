@@ -1,6 +1,7 @@
 package utilities;
 
 public class Customer extends User {
+	private int userId;
 	private String name;
 	private String email;
 	private long mobile;
@@ -11,6 +12,10 @@ public class Customer extends User {
 	private String pan;
 	private String address;
 	private String role = "CUSTOMER";
+	
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
 	
 	public void setName(String name) {
 		this.name = name;
@@ -39,7 +44,9 @@ public class Customer extends User {
 	public void setAddress(String address) {
 		this.address = address;
 	}
-	
+	public int getUserId() {
+		return userId;
+	}
 	public String getName() {
 		return this.name;
 	}

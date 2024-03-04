@@ -28,33 +28,33 @@ public class BankingTester {
 				try{
 	
 					ZBank zBank = new ZBank();
-					
-					logger.log(Level.INFO, "Welcome to Z Bank");
-				
-					
-					logger.log(Level.INFO, "Enter the user id: ");
-					int username = bankScanner.nextInt();
+
+					System.out.println( "Welcome to Z Bank");
+
+					System.out.println( "Enter the user id: ");
+					int userId = bankScanner.nextInt();
 					bankScanner.nextLine();
-					    
-					String user =  zBank.getUser(username);
+
+					String user = zBank.getUser(userId);
 					boolean passwordLoop = true;
 					do {
 						try {
-							logger.log(Level.INFO, "Enter the password ");
+							System.out.println( "Enter the password ");
 							String password = bankScanner.nextLine();
 
-							 zBank.checkPassword(username, password);
-							 passwordLoop = false;
-						}catch(WrongPasswordException e) {
-							e.getMessage();					
+							zBank.checkPassword(userId, password);
+							passwordLoop = false;
+						} catch (WrongPasswordException e) {
+							e.getMessage();
 						}
-					
-					}while(passwordLoop);
-					
-					logger.log(Level.INFO,"welcome to ZBank.\nYou successfully logged in ");
+
+					} while (passwordLoop);
+
+					System.out.println( "welcome to ZBank.\nYou successfully logged in ");
 					BankTester bankTester = new BankTester();
-					switch(user) {
-					
+					bankTester.setUserId(userId);
+					switch (user) {
+
 					case "ADMIN":
 						 bankTester.adminAccess();
 						break;
@@ -64,6 +64,7 @@ public class BankingTester {
 						break;
 					
 					case "CUSTOMER":
+						bankTester.customerAccess();
 						break;
 					}
 					
