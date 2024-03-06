@@ -5,9 +5,9 @@ public class TransactionReq {
 	private TransactionDetail type;
 	private TransactionPeriod time;
 	private int userId;
-	private boolean isForAllAccount;
+	private boolean isForAllAccount = false;
 	private long accountNumber;
-	private int limit = 500;
+	private int limit = 50;
 	
 	public int getLimit() {
 		return this.limit;

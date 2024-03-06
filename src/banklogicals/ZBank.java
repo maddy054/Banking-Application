@@ -5,6 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import persistance.Connector;
 import persistance.DbConnector;
@@ -27,8 +29,14 @@ public class ZBank {
 		return dbConnector.getRole(userId);
 	}
 	
+	public boolean isvalidPassword(String password) {
+		
+		 Pattern pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W]).{8,16}$");
+		  Matcher match = pattern.matcher(password);
+		  return match.matches();	
+	}
 	
-	public void checkPassword(int userId, String password) throws BankingException, WrongPasswordException{
+	public void checkPassword(int userId, String password) throws BankingException {
 
 			String originalPassword = dbConnector.getPassword(userId);
 			String enteredPassword = getHash(password);
@@ -59,14 +67,20 @@ public class ZBank {
 
 		dbConnector.addAccount(account);
 	}
+	public void changePassword(int userId,String newPassword) throws BankingException {
 	
-	public void changePassword(String oldPassword,String newPassword) {
-		
+		dbConnector.changePassword(userId, getHash(newPassword));
+	}
+	
+	public List<Long> getAccountNumbers(int userId) throws BankingException {
+		return dbConnector.getAccountNumbers(userId);
 	}
 	
 	public void transferMoney(Transaction transaction,TransactionType type) throws BankingException {
 		
 		long accountNumber = transaction.getAccountNo();
+		dbConnector.verifyAccount(transaction.getUserId(),accountNumber);
+		
 		boolean state = dbConnector.isActive(accountNumber);
 		
 		if(!state) {
@@ -142,30 +156,38 @@ public class ZBank {
 	}
 	
 	public Map<Integer, Branch> getAllBranch() throws BankingException {
-	
 		return dbConnector.getAllBranches();
 	}
 	
 	public  Customer getCustomerDetails(int userId) throws BankingException {
-
 		return dbConnector.getCustomerDetails(userId);
 	}
 	
-	public  List<Account> getAccountDetails(int userId) throws BankingException {
-
+	public  Map<Long, Account> getAccountDetails(int userId) throws BankingException {
 		return dbConnector.getAccountDetails(userId);
-		
 	}
+	public Map<Integer,Map<Long,Account>> getAllAccounts(int limit,int offset) throws BankingException{
+		return dbConnector.getAllAccounts(limit, offset);
+	}
+	
 	public  Map<Long, List<Transaction>> getTransactionDetails(TransactionReq requirement) throws BankingException {
+		
+		 requirement.setForAllAccount(true);
 		return dbConnector.getTransactionDetail(requirement);
 	}
-   public Map<Long, List<Transaction>> getAccountTransaction(TransactionReq requirement) throws BankingException{
+	
+   public List<Transaction> getAccountTransaction(TransactionReq requirement) throws BankingException{
 	   
-
-	   return dbConnector.getTransactionDetail(requirement);
+	   long accountNumber = requirement.getAccountNumber();
+	   dbConnector.verifyAccount(requirement.getUserId(),accountNumber);
+	   
+	  
+	   return dbConnector.getTransactionDetail(requirement).get(accountNumber);
    }
   
-   public long getAccountBalance(long accountNumber) throws BankingException {
+   public long getAccountBalance(int userId,long accountNumber) throws BankingException {
+	   dbConnector.verifyAccount(userId,accountNumber);
+	   
 	   return dbConnector.getBalance(accountNumber);
    }
    public long getOverAllBalance(int userId) throws BankingException {

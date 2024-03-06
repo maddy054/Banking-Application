@@ -6,6 +6,14 @@ public class Account {
 	private long balance;
 	private String accountType;
 	private int BranchId;
+	private String accountStatus;
+	
+	public String getAccountStatus() {
+		return accountStatus;
+	}
+	public void setAccountStatus(String accountStatus) {
+		this.accountStatus = accountStatus;
+	}
 	public int getUserId() {
 		return userId;
 	}

@@ -45,7 +45,7 @@ public class BankingTester {
 							zBank.checkPassword(userId, password);
 							passwordLoop = false;
 						} catch (WrongPasswordException e) {
-							e.getMessage();
+							logger.log(Level.WARNING,e.getMessage());
 						}
 
 					} while (passwordLoop);
@@ -72,8 +72,7 @@ public class BankingTester {
 				  } catch (BankingException e) {
 					logger.log(Level.WARNING,e.getMessage());
 				  } catch (InvalidUserException e) {
-				
-					e.printStackTrace();
+					  logger.log(Level.INFO,e.getMessage());
 				}
 			}
 			
