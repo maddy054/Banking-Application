@@ -10,17 +10,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import banklogicals.ZBank;
-
-import utilities.Account;
-import utilities.BankingException;
-import utilities.Branch;
-import utilities.Customer;
-import utilities.Employee;
-import utilities.Transaction;
-import utilities.TransactionDetail;
-import utilities.TransactionPeriod;
-import utilities.TransactionReq;
-import utilities.TransactionType;
+import models.Account;
+import models.BankingException;
+import models.Branch;
+import models.Customer;
+import models.Employee;
+import models.Transaction;
+import models.TransactionDetail;
+import models.TransactionPeriod;
+import models.TransactionReq;
+import models.TransactionType;
+import utilities.WrongPasswordException;
 
 public class BankTester {
 	private Logger logger = Logger.getLogger(BankingTester.class.getName());
@@ -32,7 +32,7 @@ public class BankTester {
 	public void setUserId(int userId) {
 		this.userId = userId;
 	}
-	public void adminAccess() throws BankingException {
+	public void adminAccess() throws BankingException, WrongPasswordException {
 
 		int select = 0;
 		
@@ -179,6 +179,7 @@ public class BankTester {
 				
 				System.out.println("Enter the userId");
 				 userId = bankScanner.nextInt();
+				 bankScanner.nextLine();
 				zBank.userDeactivate(userId);
 				break;
 			case 11:
@@ -201,7 +202,7 @@ public class BankTester {
 		 }while(select != 0);
 	}
 	
-	public void employeeAccess() throws BankingException {
+	public void employeeAccess() throws BankingException, WrongPasswordException {
 		
 		int select = 0;
 		
@@ -538,7 +539,7 @@ public class BankTester {
 			
     		
     }
-    private void changePassword() throws BankingException {
+    private void changePassword() throws BankingException, WrongPasswordException {
     	
     	System.out.println("Enter the old password");
     	String oldPass = bankScanner.nextLine();

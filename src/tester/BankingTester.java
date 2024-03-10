@@ -1,12 +1,13 @@
 package tester;
 
 
+import java.sql.SQLException;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import banklogicals.ZBank;
-import utilities.BankingException;
+import models.BankingException;
 
 import utilities.InvalidUserException;
 
@@ -16,7 +17,7 @@ import utilities.WrongPasswordException;
 public class BankingTester {
 	Logger logger = Logger.getLogger(BankingTester.class.getName());
 	
-	public static void main(String... args) {
+	public static void main(String... args) throws SQLException {
 
 		Logger logger = Logger.getLogger(BankingTester.class.getName());
 		try(Scanner bankScanner = new Scanner(System.in)){
@@ -26,7 +27,10 @@ public class BankingTester {
 			while(loop) {
 
 				try{
-	
+					/*
+					 * QueryBuilder qb = new QueryBuilder(null); qb.getColumnNames(new
+					 * ArrayList<Integer>());
+					 */
 					ZBank zBank = new ZBank();
 
 					System.out.println( "Welcome to Z Bank");
@@ -71,7 +75,10 @@ public class BankingTester {
 				
 				  } catch (BankingException e) {
 					logger.log(Level.WARNING,e.getMessage());
+				
 				  } catch (InvalidUserException e) {
+					  logger.log(Level.INFO,e.getMessage());
+				} catch (WrongPasswordException e) {
 					  logger.log(Level.INFO,e.getMessage());
 				}
 			}

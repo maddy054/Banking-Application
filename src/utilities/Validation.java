@@ -1,4 +1,4 @@
-package banklogicals;
+package utilities;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,8 +16,8 @@ public class Validation {
 		Matcher match = getMatcher(pattern,number);
 		return match.matches();
 	}
-	public boolean checkLength(int minLength,int maxLength , String values) {
-	  Pattern pattern = Pattern.compile("^.{1,6}$");
+	public boolean checkLength(String values) {
+	  Pattern pattern = Pattern.compile("^.{1,30}$");
 	  Matcher match = pattern.matcher(values);
 	  return match.matches();
 	  }

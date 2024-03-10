@@ -1,4 +1,8 @@
-package utilities;
+package models;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class Transaction {
 	private long dateTime;
@@ -77,5 +81,34 @@ public class Transaction {
 	}
 	public void setStatus(String status) {
 		this.status = status;
+	}
+	
+	public List<Object> getAll(){
+		List<Object> transaction = new ArrayList<>();
+		transaction.add(getDateTime());
+		transaction.add(getUserId());
+		transaction.add(getAccountNo());
+		transaction.add(getTransactionAccNo());
+		transaction.add(getAmount());
+		transaction.add(getType());
+		transaction.add(getDescription());
+		transaction.add(getOpenBalance());
+		transaction.add(getCloseBalance());
+		transaction.add(getStatus());
+		return transaction;
+
+	}
+	public void setAll(Map<String,Object> transaction) {
+		setDateTime((long) transaction.get("DATE_TIME"));
+		setUserId((int) transaction.get("USER_ID"));
+		setAccountNo((long) transaction.get("ACCOUNT_NUMBER"));
+		setTransactionId((long) transaction.get("TRANSACTION_ID"));
+		setTransactionAccNo((long) transaction.get("TRASACTION_ACCOUNT_NO"));
+		setAmount((int) transaction.get("AMOUNT"));
+		setType((String) transaction.get("TYPE"));
+		setDescription((String) transaction.get("DESCRIPTION"));
+		setOpenBalance((long) transaction.get("OPENING_BALANCE"));
+		setCloseBalance((long) transaction.get("CLOSING_BALANCE"));
+		setStatus((String) transaction.get("STATUS"));
 	}
 }

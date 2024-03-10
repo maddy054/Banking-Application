@@ -1,4 +1,4 @@
-package utilities;
+package models;
 
 public enum TransactionPeriod {
 	THIS_MONTH,

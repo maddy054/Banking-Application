@@ -1,30 +1,31 @@
 package persistance;
 
 
+
 import java.util.List;
 import java.util.Map;
 
-import utilities.Account;
-import utilities.BankingException;
-import utilities.Branch;
-import utilities.Customer;
-import utilities.Employee;
+import models.Account;
+import models.BankingException;
+import models.Branch;
+import models.Customer;
+import models.Employee;
+import models.Transaction;
+import models.TransactionReq;
 import utilities.InvalidUserException;
-import utilities.Transaction;
-import utilities.TransactionReq;
 
 
 public interface Connector {
 
-	public  String getPassword(int userId) throws BankingException;
+	public  String getPassword(int userId) throws  BankingException;
 	
-	public String getRole(int userId) throws BankingException,InvalidUserException ;
+	public String getRole(int userId) throws InvalidUserException, BankingException ;
 	
-	public void addEmployee(Employee employee,String password) throws BankingException;
+	public void addEmployee(Employee employee) throws BankingException;
 	
 	public void addBranch(Branch branch) throws BankingException;
 	
-	public void addCustomer(Customer customer,String passWord) throws BankingException;
+	public void addCustomer(Customer customer) throws BankingException;
 	
 	public void addAccount(Account account) throws BankingException  ;
 	

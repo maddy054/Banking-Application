@@ -1,6 +1,8 @@
 package utilities;
 
-public class WrongPasswordException extends BankingException{
+import models.BankingException;
+
+public class WrongPasswordException extends Exception{
 
 	private static final long serialVersionUID = 1L;
 	

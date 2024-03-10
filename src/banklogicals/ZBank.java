@@ -8,19 +8,20 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import helper.Helper;
+import invalidexception.InputInvalidException;
+import models.Account;
+import models.BankingException;
+import models.Branch;
+import models.Customer;
+import models.Employee;
+import models.Transaction;
+import models.TransactionReq;
+import models.TransactionType;
 import persistance.Connector;
 import persistance.DbConnector;
-import utilities.Account;
-import utilities.BankingException;
-import utilities.Branch;
-import utilities.Customer;
-import utilities.Employee;
 import utilities.InvalidUserException;
-import utilities.Transaction;
-
-import utilities.TransactionType;
 import utilities.WrongPasswordException;
-import utilities.TransactionReq;
 
 public class ZBank {
 	private Connector dbConnector = new DbConnector();
@@ -29,14 +30,14 @@ public class ZBank {
 		return dbConnector.getRole(userId);
 	}
 	
-	public boolean isvalidPassword(String password) {
+	public boolean isvalidPassword(String password) throws BankingException {
 		
 		 Pattern pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W]).{8,16}$");
 		  Matcher match = pattern.matcher(password);
 		  return match.matches();	
 	}
 	
-	public void checkPassword(int userId, String password) throws BankingException {
+	public void checkPassword(int userId, String password) throws BankingException, WrongPasswordException {
 
 			String originalPassword = dbConnector.getPassword(userId);
 			String enteredPassword = getHash(password);
@@ -49,8 +50,8 @@ public class ZBank {
 
 	public void addEmployees(Employee emploee,String password) throws BankingException{
 		password = getHash(password);
-	
-		dbConnector.addEmployee(emploee,password);	
+	 emploee.setPassword(password);
+		dbConnector.addEmployee(emploee);	
 	}
 	
 	public void addBranch(Branch branch) throws BankingException {
@@ -60,7 +61,8 @@ public class ZBank {
 	
 	public void addCustomer(Customer customer,String password) throws BankingException {
 		password = getHash(password);
-		dbConnector.addCustomer(customer, password);
+		customer.setPassword(password);
+		dbConnector.addCustomer(customer);
 	}
 	
 	public void addAccount(Account account) throws BankingException{
@@ -152,7 +154,7 @@ public class ZBank {
 	}
 	
 	public void userDeactivate(int userId) throws BankingException {
-		dbConnector.getAccountDetails(userId);
+		dbConnector.deactivateAccount(userId);
 	}
 	
 	public Map<Integer, Branch> getAllBranch() throws BankingException {
