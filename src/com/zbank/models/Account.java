@@ -1,19 +1,20 @@
 package com.zbank.models;
 
-
+import com.zbank.enums.AccountType;
+import com.zbank.enums.Status;
 
 public class Account {
 	private int userId;
 	private long accountNo;
 	private long balance;
-	private String accountType;
+	private AccountType accountType;
 	private int BranchId;
-	private String accountStatus = "ACTIVE";
+	private Status accountStatus = Status.ACTIVE;
 	
-	public String getAccountStatus() {
+	public Status getAccountStatus() {
 		return accountStatus;
 	}
-	public void setAccountStatus(String accountStatus) {
+	public void setAccountStatus(Status accountStatus) {
 		this.accountStatus = accountStatus;
 	}
 	public int getUserId() {
@@ -34,10 +35,10 @@ public class Account {
 	public void setBalance(long balance) {
 		this.balance = balance;
 	}
-	public String getAccountType() {
+	public AccountType getAccountType() {
 		return accountType;
 	}
-	public void setAccountType(String accountType) {
+	public void setAccountType(AccountType accountType) {
 		this.accountType = accountType;
 	}
 	public int getBranchId() {

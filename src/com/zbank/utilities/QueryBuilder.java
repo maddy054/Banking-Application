@@ -19,7 +19,7 @@ public class QueryBuilder {
 	private String password = "";
 
     private String tableName;
-    private List<Integer> uesdColumns;
+    private List<Integer> usedColumns;
     private List<Integer> whereConditions;
     private boolean isLimit = false;
     private boolean isOffset = false;
@@ -40,14 +40,14 @@ public class QueryBuilder {
 
     public QueryBuilder(String tableName) {
         this.tableName = tableName;
-        this.uesdColumns = new ArrayList<>();
+        this.usedColumns = new ArrayList<>();
         this.whereConditions = new ArrayList<>();
         this.between = new ArrayList<>();
     }
 
     public QueryBuilder column(int... columns) {
         for (int column : columns) {
-        	uesdColumns.add(column);
+        	usedColumns.add(column);
         }
         return this;
     }
@@ -81,12 +81,12 @@ public class QueryBuilder {
     public String buildSelect() throws SQLException {
         StringBuilder query = new StringBuilder("SELECT ");
       
-        if (uesdColumns.isEmpty()) {
+        if (usedColumns.isEmpty()) {
         	
             query.append("*");
         } else {
         	
-        	 List<String> selectColumns = getColumnNames(uesdColumns);
+        	 List<String> selectColumns = getColumnNames(usedColumns);
         	 
             for (int i = 0; i < selectColumns.size(); i++) {
                 query.append(selectColumns.get(i));
@@ -126,7 +126,7 @@ public class QueryBuilder {
 
     public String buildUpdate() throws SQLException {
         StringBuilder query = new StringBuilder("UPDATE ").append(tableName).append(" SET ");
-        List<String> updateColumns = getColumnNames(this.uesdColumns);
+        List<String> updateColumns = getColumnNames(this.usedColumns);
         
         for (int i = 0; i < updateColumns.size(); i++) {
             query.append(updateColumns.get(i)).append(" = ?");
@@ -151,7 +151,7 @@ public class QueryBuilder {
     public String buildInsert() throws SQLException {
         StringBuilder query = new StringBuilder("INSERT INTO ").append(tableName);
 
-        List<String> insertColumns = getColumnNames(uesdColumns);
+        List<String> insertColumns = getColumnNames(usedColumns);
       
         if(!insertColumns.isEmpty()) {
         	query.append(" ( ");
@@ -180,29 +180,39 @@ public class QueryBuilder {
         return query.toString();
     }
     
-    public <V> List<String> getColumnNames(List<V> column) throws SQLException {
+    private <V> List<String> getColumnNames(List<V> column) throws SQLException {
     	
     	List<String> columnNames = new ArrayList<String>();
         try(Connection connection = getConnection()) {
         	DatabaseMetaData metaData = connection.getMetaData();
           
         	 try (ResultSet rs = metaData.getColumns("ZBank", null, tableName, null)) {
+        		 
+        		 if(column.isEmpty()) {
+        			 while(rs.next()) {
+        				 columnNames.add(rs.getString("COLUMN_NAME"));
+        			 }
+        		 }else {
         			 int count =1;
         			 while (rs.next()) {
+        				
         				 if(column.contains(count)) {
         					 
         					 columnNames.add(rs.getString("COLUMN_NAME")); 
         				 }
         				 count = count+1;
         			 }
+        			 
+        		 }
+        			
         		return columnNames;
             }
         }
     }
-	public  List<Map<String, Object>> executeQuery(String query,Object... values) throws SQLException  {
+	public  List<Map<Integer, Object>> executeQuery(String query,Object... values) throws SQLException  {
 	
 
-		  List<Map<String,Object>> resultList = new ArrayList<>();
+		  List<Map<Integer,Object>> resultList = new ArrayList<>();
 		 
 	    	try (Connection connection = getConnection()) {
 	    		PreparedStatement statement = connection.prepareStatement(query);
@@ -214,10 +224,14 @@ public class QueryBuilder {
 	   			
 	   			while (resultSet.next()) {
 	   				
-	   				Map<String,Object> resultMap = new HashMap<>();
+	   				Map<Integer,Object> resultMap = new HashMap<>();
     				
     				for (int i = 1; i <= columnCount; i++) {
-    					resultMap.put(metaData.getColumnName(i), resultSet.getObject(i));
+    					int key =i;
+    					if(!usedColumns.isEmpty()) {
+    						key = usedColumns.get(i-1);
+    					}
+    					resultMap.put(key, resultSet.getObject(i));
 	   				}
     				resultList.add(resultMap);
 	   			}

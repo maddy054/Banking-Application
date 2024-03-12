@@ -9,10 +9,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.zbank.enums.AccountType;
+import com.zbank.enums.Gender;
+import com.zbank.enums.Status;
 import com.zbank.enums.Table;
+import com.zbank.enums.TransactionDescription;
 import com.zbank.enums.TransactionDetail;
 import com.zbank.enums.TransactionPeriod;
+import com.zbank.enums.TransactionStatus;
+import com.zbank.enums.TransactionType;
+import com.zbank.enums.UserType;
 import com.zbank.exceptions.BankingException;
+import com.zbank.exceptions.InvalidUserException;
 import com.zbank.models.Account;
 import com.zbank.models.Branch;
 import com.zbank.models.Customer;
@@ -20,7 +28,6 @@ import com.zbank.models.Employee;
 import com.zbank.models.Transaction;
 import com.zbank.models.TransactionReq;
 import com.zbank.models.User;
-import com.zbank.utilities.InvalidUserException;
 import com.zbank.utilities.QueryBuilder;
 
 public class DbConnector implements Connector {
@@ -31,9 +38,9 @@ public class DbConnector implements Connector {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.USER.get());
 			String query =  queryBuilder.column(2).where(1).buildSelect();
 			
-			List<Map<String, Object>> values = queryBuilder.executeQuery(query, userId);
+			List<Map<Integer, Object>> values = queryBuilder.executeQuery(query, userId);
 		
-			return (String) values.get(0).get("PASSWORD");
+			return (String) values.get(0).get(2);
 		
 		}catch(SQLException e) {
 			throw new BankingException(e.getMessage());
@@ -41,13 +48,13 @@ public class DbConnector implements Connector {
 		}
 	}
 
-	public String getRole(int userId) throws InvalidUserException, BankingException {
+	public UserType getRole(int userId) throws InvalidUserException, BankingException {
 		try {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.USER.get());
 			String query =  queryBuilder.column(9).where(1).buildSelect();
 			
-			List<Map<String, Object>> values = queryBuilder.executeQuery(query, userId);
-			return (String) values.get(0).get("ROLE");
+			List<Map<Integer, Object>> values = queryBuilder.executeQuery(query, userId);
+			return UserType.values()[(int) values.get(0).get(9)];
 		}catch (SQLException e) {	
 			throw new BankingException(e.getMessage());
 		}
@@ -59,7 +66,7 @@ public class DbConnector implements Connector {
 		try {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.EMPLOYEE.get());
 			String query =  queryBuilder.buildInsert();
-		    queryBuilder.execute(query,	getUsersId(employee.getMobile()),employee.getBranchId(),employee.getRole());
+		    queryBuilder.execute(query,	getUsersId(employee.getMobile()),employee.getBranchId());
 		    
 		} catch (SQLException e) {
 			throw new BankingException(e.getMessage(), e);
@@ -101,9 +108,9 @@ public class DbConnector implements Connector {
 
 		try {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.ACCOUNTS.get());
-			String query =  queryBuilder.column(1,3,6).buildInsert();
+			String query =  queryBuilder.column(1,3,5,6).buildInsert();
 			
-			queryBuilder.execute(query, account.getUserId(),account.getBranchId(),account.getAccountType());
+			queryBuilder.execute(query, account.getUserId(),account.getBranchId(), account.getAccountStatus().ordinal(), account.getAccountType().ordinal());
 			
 		} catch (SQLException e) {
 			throw new BankingException(e.getMessage(), e);
@@ -117,12 +124,12 @@ public class DbConnector implements Connector {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.ACCOUNTS.get());
 			String query =  queryBuilder.column(1).where(2).buildSelect();
 			
-			List<Map<String, Object>> values =queryBuilder.executeQuery(query, accNo);
+			List<Map<Integer, Object>> values =queryBuilder.executeQuery(query, accNo);
 			
 			if(values.isEmpty()) {
 				throw new BankingException("No such account number");
 			}
-			return (int) values.get(0).get("USER_ID");
+			return (int) values.get(0).get(1);
 		} catch (SQLException e) {
 			throw new BankingException(e.getMessage(), e);
 		}
@@ -136,13 +143,13 @@ public class DbConnector implements Connector {
 		try{
 			QueryBuilder queryBuilder = new QueryBuilder(Table.ACCOUNTS.get());
 			String query =  queryBuilder.column(2).where(1).buildSelect();
-			List<Map<String, Object>> values =queryBuilder.executeQuery(query, userId);
+			List<Map<Integer, Object>> values =queryBuilder.executeQuery(query, userId);
 			
 			if(values.isEmpty()) {
 				throw new BankingException("No account found !! ");
 			}
-			for(Map<String,Object> map : values) {
-				accountNumbers.add((Long) map.get("ACCOUNT_NUMBER"));
+			for(Map<Integer, Object> map : values) {
+				accountNumbers.add((Long) map.get(2));
 			}
 			
 			return accountNumbers;
@@ -170,13 +177,13 @@ public class DbConnector implements Connector {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.ACCOUNTS.get());
 			String query =  queryBuilder.column(4).where(2).buildSelect();
 			
-			List<Map<String, Object>> values =queryBuilder.executeQuery(query, accountNumber);
+			List<Map<Integer, Object>> values =queryBuilder.executeQuery(query, accountNumber);
 			
 			if(values.isEmpty()) {
 				throw new BankingException("Account number not found!!");
 			}
 			
-			return (long) values.get(0).get("BALANCE");
+			return (long) values.get(0).get(4);
 		} catch (SQLException e) {
 			throw new BankingException(e.getMessage(), e);
 		}
@@ -190,9 +197,9 @@ public class DbConnector implements Connector {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.ACCOUNTS.get());
 			String query = queryBuilder.column(4).where(1).buildSelect();
 			
-			List<Map<String,Object>> resultList = queryBuilder.executeQuery(query, userId);
-			for(Map<String,Object> map:resultList) {
-				balance = balance + (long)map.get("BALANCE");
+			List<Map<Integer, Object>> resultList = queryBuilder.executeQuery(query, userId);
+			for(Map<Integer, Object> map:resultList) {
+				balance = balance + (long)map.get(4);
 			}
 			return balance;
 			
@@ -208,7 +215,7 @@ public class DbConnector implements Connector {
 			
 			QueryBuilder queryBuilder = new QueryBuilder(Table.BRANCH.get());
 			String query =  queryBuilder.buildSelect();
-			List<Map<String, Object>> values =queryBuilder.executeQuery(query);
+			List<Map<Integer, Object>> values =queryBuilder.executeQuery(query);
 			
 			for(int i =0;i<values.size();i++) {
 				
@@ -225,11 +232,11 @@ public class DbConnector implements Connector {
 		}
 	}
 
-	private void setBranch(Branch branch,Map<String, Object> map) {
-		branch.setBranchId((int) map.get("BRANCH_ID"));
-		branch.setBranchName((String) map.get("BRANCH_NAME"));
-		branch.setIfsc((long) map.get("IFSC_CODE"));
-		branch.setAddress((String) map.get("ADDRESS"));
+	private void setBranch(Branch branch,Map<Integer, Object> map) {
+		branch.setBranchId((int) map.get(1));
+		branch.setBranchName((String) map.get(2));
+		branch.setIfsc((long) map.get(3));
+		branch.setAddress((String) map.get(4));
 		
 	}
 
@@ -242,7 +249,7 @@ public class DbConnector implements Connector {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.CUSTOMER.get());
 			String query = queryBuilder.where(1).buildSelect();
 			
-			List<Map<String, Object>> customerList = queryBuilder.executeQuery(query,userId);
+			List<Map<Integer, Object>> customerList = queryBuilder.executeQuery(query,userId);
 			setCustomer(customer,customerList.get(0));
 			
 		} catch (SQLException e) {
@@ -252,10 +259,10 @@ public class DbConnector implements Connector {
 
 	}
 	
-	private void setCustomer(Customer customer, Map<String, Object> map) {
-		customer.setAadhar((long) map.get("AADHAR_NUMBER"));
-		customer.setPan((String) map.get("PAN_NUMBER"));
-		customer.setAddress((String) map.get("ADDRESS"));
+	private void setCustomer(Customer customer, Map<Integer, Object> map) {
+		customer.setAadhar((long) map.get(2));
+		customer.setPan((String) map.get(3));
+		customer.setAddress((String) map.get(4));
 		
 	}
 
@@ -266,7 +273,7 @@ public class DbConnector implements Connector {
 		try {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.EMPLOYEE.get());
 			String query = queryBuilder.where(1).buildSelect();
-			int branchId = (int) queryBuilder.executeQuery(query, userId).get(0).get("BRANCH_ID");
+			int branchId = (int) queryBuilder.executeQuery(query, userId).get(0).get(2);
 			employee.setBranchId(branchId);
 			
 			return employee;
@@ -284,9 +291,9 @@ public class DbConnector implements Connector {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.ACCOUNTS.get());
 			
 			String query = queryBuilder.where(1).buildSelect();
-			List<Map<String, Object>> values = queryBuilder.executeQuery(query, userId);
+			List<Map<Integer, Object>> values = queryBuilder.executeQuery(query, userId);
 			
-			for(Map<String,Object> value :values) {
+			for(Map<Integer, Object> value :values) {
 				Account account = new Account();
 				setAccounts(account,value);
 				accountMap.put(account.getAccountNo(), account);
@@ -298,26 +305,26 @@ public class DbConnector implements Connector {
 
 	}
 	
-	private void setAccounts(Account account, Map<String, Object> map) {
-		account.setUserId((int) map.get("USER_ID"));
-		account.setAccountNo((long) map.get("ACCOUNT_NUMBER"));
-		account.setBranchId((int) map.get("BRANCH_ID"));
-		account.setBalance((long) map.get("BALANCE"));
-		account.setAccountStatus((String) map.get("STATUS"));
-		account.setAccountType((String) map.get("ACCOUNT_TYPE"));
+	private void setAccounts(Account account, Map<Integer, Object> value) {
+		account.setUserId((int) value.get(1));
+		account.setAccountNo((long) value.get(2));
+		account.setBranchId((int) value.get(3));
+		account.setBalance((long) value.get(4));
+		account.setAccountStatus(Status.values()[(int) value.get(5)]);
+		account.setAccountType( AccountType.values()[(int) value.get(6)]);
 		
 	}
 
-	public Map<Integer, Map<Long, Account>> getAllAccounts(int limit, int offset) throws BankingException {
+	public Map<Integer, Map<Long, Account>> getAllAccounts(int branchId,int limit, int offset) throws BankingException {
 
 		Map<Integer, Map<Long, Account>> accountMap = new HashMap<>();
 		Map<Long,Account> individualAccount = new HashMap<>();
 		
 		try {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.ACCOUNTS.get());
-			String query = queryBuilder.limit().offset().buildSelect();
+			String query = queryBuilder.where(3).limit().offset().buildSelect();
 		
-			for(Map<String, Object> map : queryBuilder.executeQuery(query, limit,offset)) {
+			for(Map<Integer, Object> map : queryBuilder.executeQuery(query, limit,offset)) {
 				Account account = new Account();
 				setAccounts(account,map);
 			
@@ -361,11 +368,11 @@ public class DbConnector implements Connector {
 		values.add(transaction.getAccountNo());
 		values.add(transaction.getTransactionAccNo());
 		values.add(transaction.getAmount());
-		values.add(transaction.getType());
-		values.add(transaction.getDescription());
+		values.add(transaction.getType().ordinal());
+		values.add(transaction.getDescription().ordinal());
 		values.add(transaction.getOpenBalance());
 		values.add(transaction.getCloseBalance());
-		values.add(transaction.getStatus());
+		values.add(transaction.getStatus().ordinal());
 		
 		return values;
 	}
@@ -383,8 +390,8 @@ public class DbConnector implements Connector {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.ACCOUNTS.get());
 			String query = queryBuilder.column(5).where(2).buildSelect();
 			
-			List<Map<String, Object>> resultList = queryBuilder.executeQuery(query, accountNumber);
-			return resultList.get(0).get("STATUS").equals("ACTIVE");
+			List<Map<Integer, Object>> resultList = queryBuilder.executeQuery(query, accountNumber);
+			return resultList.get(0).get(5).equals(0);
 		} catch (SQLException e) {
 			throw new BankingException(e.getMessage(), e);
 		}
@@ -407,88 +414,70 @@ public class DbConnector implements Connector {
 
 	}
 
-	public void deactivateAccount(long accountNumber) throws BankingException {
+	public void setAccountStatus(long accountNumber,Status status) throws BankingException {
 
 		try {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.ACCOUNTS.get());
 			String query =  queryBuilder.column(5).where(2).buildUpdate();
-			queryBuilder.execute(query, "INACTIVE",accountNumber);
+			queryBuilder.execute(query, status.ordinal(),accountNumber);
 
 		} catch (SQLException e) {
 			throw new BankingException(e.getMessage(), e);
 		}
 	}
+	
+	public void setUserStatus(int userId, Status status) throws BankingException{
+		try {
+			QueryBuilder queryBuilder = new QueryBuilder(Table.USER.get());
+			String query =  queryBuilder.column(8).where(2).buildUpdate();
+			queryBuilder.execute(query, status.ordinal(),userId);
 
+		} catch (SQLException e) {
+			throw new BankingException(e.getMessage(), e);
+		}
+	}
 	
 	
-	public Map<Long, List<Transaction>> getTransactionDetail(TransactionReq req) throws BankingException {
+	public List<Transaction> getTransactionDetail(TransactionReq req) throws BankingException {
 
-		
-
-		Map<Long, List<Transaction>> transactionMap = new HashMap<>();
 		List<Transaction> transactionList = new ArrayList<>();
-		Transaction transaction = new Transaction();
+		
 		
 		try  {
 			String query = new String();
 			
 			QueryBuilder queryBuilder = new QueryBuilder(Table.TRANSACTION.get());
 			
-			List<Map<String,Object>> resultList = new ArrayList<>();
+			List<Map<Integer, Object>> resultList = new ArrayList<>();
 			long[] time = getTime(req.getTime());
 			
-			if(req.isForAllAccount()) {
-				query = getTransactionQuery(req);
-				resultList = queryBuilder.executeQuery(query, req.getUserId(),req.getType().get(),time[0],time[1],req.getLimit(),0);
-			}
-			else {
 				query = getAccTransactionQuery(req);
-				resultList = queryBuilder.executeQuery(query, req.getUserId(),req.getAccountNumber(),req.getType().get(),time[0],time[1],req.getLimit(),0);
-			}
+				resultList = queryBuilder.executeQuery(query, req.getUserId(),req.getAccountNumber(),req.getType().ordinal(),time[0],time[1],req.getLimit(),0);
 			
-			for(Map<String,Object> transactions : resultList) {
+			for(Map<Integer, Object> transactions : resultList) {
+				Transaction transaction = new Transaction();
 				setTransaction(transaction,transactions);
-				transactionList = transactionMap.get(transaction.getAccountNo());
-				
-				if(transactionList == null) {
-					transactionList = new ArrayList<>();
-				}
-				
 				transactionList.add(transaction);
-				transactionMap.put(transaction.getAccountNo(),transactionList);
 			}
-		
-			return transactionMap;
+			return transactionList;
 
 		} catch (SQLException e) {
 
 			throw new BankingException(e.getMessage(), e);
 		}
 	}
-	private void setTransaction(Transaction transaction, Map<String, Object> transactions) {
-		transaction.setDateTime((long) transactions.get("DATE_TIME"));
-		transaction.setUserId((int) transactions.get("USER_ID"));
-		transaction.setAccountNo((long) transactions.get("ACCOUNT_NUMBER"));
-		transaction.setTransactionId((long) transactions.get("TRANSACTION_ID"));
-		transaction.setTransactionAccNo((long) transactions.get("TRANSACTION_ACCOUNT_N0"));
-		transaction.setAmount((int) transactions.get("AMOUNT"));
-		transaction.setType((String) transactions.get("TYPE"));
-		transaction.setDescription((String) transactions.get("DESCRIPTION"));
-		transaction.setOpenBalance((long) transactions.get("OPENING_BALANCE"));
-		transaction.setCloseBalance((long) transactions.get("CLOSING_BALANCE"));
-		transaction.setStatus((String) transactions.get("STATUS"));
-		
-	}
-
-	private String getTransactionQuery(TransactionReq requirement) throws SQLException {
-		
-		QueryBuilder queryBuilder = new QueryBuilder(Table.TRANSACTION.get());
-		int column = 7;
-		
-		if(requirement.getType() == TransactionDetail.SUCCESS || requirement.getType() == TransactionDetail.FAILED) {
-			 column =11;	
-			}
-		return queryBuilder.where(2,column).between(1).limit().offset().buildSelect();
+	private void setTransaction(Transaction transaction, Map<Integer, Object> transactions) {
+		transaction.setDateTime((long) transactions.get(1));
+		transaction.setUserId((int) transactions.get(2));
+		transaction.setAccountNo((long) transactions.get(3));
+		transaction.setTransactionId((long) transactions.get(4));
+		transaction.setTransactionAccNo((long) transactions.get(5));
+		transaction.setAmount((int) transactions.get(6));
+		transaction.setType(TransactionType.values()[(int) transactions.get(7)]);
+		transaction.setDescription(TransactionDescription.values()[(int) transactions.get(8)]);
+		transaction.setOpenBalance((long) transactions.get(9));
+		transaction.setCloseBalance((long) transactions.get(10));
+		transaction.setStatus(TransactionStatus.values()[(int) transactions.get(11)]);
 		
 	}
 
@@ -548,7 +537,7 @@ public class DbConnector implements Connector {
 			String query = queryBuilder.column(2,3,4,5,6,7,8,9).buildInsert();
 			List<Object> userObj = getUserDetails(user);
 			userObj.remove(0);
-			System.out.println(queryBuilder.executeQuery(query, userObj.toArray()).get(0).get("LAST_INSERT_ID()"));
+			queryBuilder.execute(query, userObj.toArray());
 		} catch (SQLException e) {
 			throw new BankingException(e.getMessage(), e);
 		}
@@ -558,12 +547,12 @@ public class DbConnector implements Connector {
 		try {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.USER.get());
 			String query = queryBuilder.column(1).where(4).buildSelect();
-			List<Map<String,Object>> resultList = queryBuilder.executeQuery(query, mobile);
+			List<Map<Integer, Object>> resultList = queryBuilder.executeQuery(query, mobile);
 			
 			if(resultList.isEmpty()) {
 				throw new BankingException("User not found");
 			}
-			return (int) resultList.get(0).get("USER_ID");
+			return (int) resultList.get(0).get(1);
 		} catch (SQLException e) {
 			throw new BankingException(e.getMessage(), e);
 		}
@@ -574,7 +563,7 @@ public class DbConnector implements Connector {
 		try {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.USER.get());
 			String query = queryBuilder.where(1).buildSelect();
-			List<Map<String, Object>> resultList = queryBuilder.executeQuery(query, userId);
+			List<Map<Integer, Object>> resultList = queryBuilder.executeQuery(query, userId);
 	
 			setUser(user,resultList.get(0));
 			
@@ -584,14 +573,15 @@ public class DbConnector implements Connector {
 
 	}
 
-	private void setUser(User user, Map<String, Object> map) {
-		user.setUserId((int) map.get("USER_ID"));
-		user.setName((String) map.get("NAME"));
-		user.setMobile((long) map.get("MOBILE"));
-		user.setEmail((String) map.get("EMAIL"));
-		user.setAge((int) map.get("AGE"));
-		user.setGender((String) map.get("GENDER"));
-		user.setStatus((String) map.get("STATUS"));
+	private void setUser(User user, Map<Integer, Object> map) {
+		user.setUserId((int) map.get(1));
+		user.setName((String) map.get(3));
+		user.setMobile((long) map.get(4));
+		user.setEmail((String) map.get(5));
+		user.setAge((int) map.get(6));
+		user.setGender(Gender.values()[(int) map.get(7)]);
+		user.setStatus(Status.values()[(int) map.get(8)]);
+		user.setRole(UserType.values()[(int) map.get(9)]);
 		
 	}
 	public List<Object> getUserDetails(User user) {
@@ -603,14 +593,11 @@ public class DbConnector implements Connector {
 		customer.add(user.getMobile());
 		customer.add(user.getEmail());
 		customer.add(user.getAge());
-		customer.add(user.getGender());
-		customer.add(user.getStatus());
-		customer.add(user.getRole());
+		customer.add(user.getGender().ordinal());
+		customer.add(user.getStatus().ordinal());
+		customer.add(user.getRole().ordinal());
 		return customer; 
 		
 	}
 
-
-	
 }
-

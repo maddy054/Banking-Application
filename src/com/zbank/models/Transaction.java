@@ -1,5 +1,8 @@
 package com.zbank.models;
 
+import com.zbank.enums.TransactionDescription;
+import com.zbank.enums.TransactionStatus;
+import com.zbank.enums.TransactionType;
 
 public class Transaction {
 	private long dateTime;
@@ -8,11 +11,11 @@ public class Transaction {
 	private long transactionId;
 	private long transactionAccNo;
 	private int amount;
-	private String type;
-	private String description;
+	private TransactionType type;
+	private TransactionDescription description;
 	private long openBalance;
 	private long closeBalance;
-	private String status;
+	private TransactionStatus status;
 	public long getDateTime() {
 		return dateTime;
 	}
@@ -49,16 +52,16 @@ public class Transaction {
 	public void setAmount(int amount) {
 		this.amount = amount;
 	}
-	public String getType() {
+	public TransactionType getType() {
 		return type;
 	}
-	public void setType(String type) {
+	public void setType(TransactionType type) {
 		this.type = type;
 	}
-	public String getDescription() {
+	public TransactionDescription getDescription() {
 		return description;
 	}
-	public void setDescription(String description) {
+	public void setDescription(TransactionDescription description) {
 		this.description = description;
 	}
 	public long getOpenBalance() {
@@ -73,10 +76,10 @@ public class Transaction {
 	public void setCloseBalance(long closeBalance) {
 		this.closeBalance = closeBalance;
 	}
-	public String getStatus() {
+	public TransactionStatus getStatus() {
 		return status;
 	}
-	public void setStatus(String status) {
-		this.status = status;
+	public void setStatus(TransactionStatus success) {
+		this.status = success;
 	}
 }

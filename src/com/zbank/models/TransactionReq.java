@@ -8,7 +8,6 @@ public class TransactionReq {
 	private TransactionDetail type;
 	private TransactionPeriod time;
 	private int userId;
-	private boolean isForAllAccount = false;
 	private long accountNumber;
 	private int limit = 50;
 	
@@ -49,10 +48,5 @@ public class TransactionReq {
 	public void setTime(TransactionPeriod time) {
 		this.time = time;
 	}
-	 public boolean isForAllAccount() {
-			return isForAllAccount;
-	}
-	 public void setForAllAccount(boolean isForAllAccount) {
-			this.isForAllAccount = isForAllAccount;
-	}
+
 }

@@ -9,9 +9,13 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.zbank.enums.AccountType;
+import com.zbank.enums.Gender;
+import com.zbank.enums.Status;
+import com.zbank.enums.TransactionDescription;
 import com.zbank.enums.TransactionDetail;
 import com.zbank.enums.TransactionPeriod;
-import com.zbank.enums.TransactionType;
+import com.zbank.enums.UserType;
 import com.zbank.exceptions.BankingException;
 import com.zbank.exceptions.WrongPasswordException;
 import com.zbank.logics.ZBank;
@@ -22,16 +26,17 @@ import com.zbank.models.Employee;
 import com.zbank.models.Transaction;
 import com.zbank.models.TransactionReq;
 
-public class BankTester {
-	private Logger logger = Logger.getLogger(BankingTester.class.getName());
+public class Authorization {
+	
+	private Logger logger = Logger.getLogger(Authorization.class.getName());
 	private Scanner bankScanner = new Scanner(System.in);
 	private ZBank zBank = new ZBank();
 	private int userId; 
 	
-	
 	public void setUserId(int userId) {
 		this.userId = userId;
 	}
+	
 	public void adminAccess() throws BankingException, WrongPasswordException {
 
 		int select = 0;
@@ -39,9 +44,9 @@ public class BankTester {
 		do {
 				
 		try {
-		System.out.println(" 1. Add a new employee \n 2. Add a new customer \n 3 .Create a account for customer \n 4. Get the customers details in particular Branch"
+		System.out.println(" 1. Add a new employee \n 2. Add a new customer \n 3 .Create a account for customer \n 4. Get the customers details "
 					+ "\n 5. Add new branch details \n 6. Get all the branch details \n 7. Get all account details of a customer \n 8. Get all the account details \n 9. Deactivate account \n"
-					+ " 10. Deactivate user \n 11. Change password \n 12. Delete a user \n 0. Logout ");
+					+ " 10. Deactivate user \n 11. Change password \n 0. Logout ");
 			
  
 			select = bankScanner.nextInt();
@@ -71,20 +76,17 @@ public class BankTester {
 			
 				
 				
-				System.out.println( "Enter the gender ");
-				String gender = bankScanner.nextLine();
-			
-				
-				System.out.println( "Enter the role ");
-				String role = bankScanner.nextLine();
+				System.out.println( "Enter the gender \n 0. Male \n 1. Female \n 2. Other ");
+				int gender = bankScanner.nextInt();
+				bankScanner.nextLine();
 				
 					
 					employee.setName(name);
 					employee.setEmail(email);
 					employee.setMobile(mobile);
 					employee.setAge(age);
-					employee.setGender(gender);
-					employee.setRole(role);
+					employee.setGender(Gender.values()[gender]);
+					employee.setRole(UserType.EMPLOYEE);
 					
 					System.out.println( "Enter the branch id ");
 					
@@ -147,32 +149,36 @@ public class BankTester {
 			case 8:
 				int offset = 0;
 				int choice =0;
-				try {
-				do {
-				Map<Integer,Map<Long,Account>> accountsMap = zBank.getAllAccounts(10,offset);
-				
-				Collection<Map<Long,Account>> accounts = accountsMap.values();
-				
-				for(Map<Long,Account> individualAccount:accounts) {
-					printAccounts(individualAccount);
-				}
-				System.out.println("1. NEXT      0. GO BACK ");
-				
-				choice = bankScanner.nextInt();
+				System.out.println("Enter the brach Id");
+				 branchId = bankScanner.nextInt();
 				bankScanner.nextLine();
 				
-				offset += 10;
+				try {
+					do {
+						Map<Integer,Map<Long,Account>> accountsMap = zBank.getAllAccounts(branchId,10,offset);
 				
-				}while(choice == 1);
+						Collection<Map<Long,Account>> accounts = accountsMap.values();
+				
+						for(Map<Long,Account> individualAccount:accounts) {
+							printAccounts(individualAccount);
+						}
+						System.out.println("1. NEXT      0. GO BACK ");
+				
+						choice = bankScanner.nextInt();
+						bankScanner.nextLine();
+				
+						offset += 10;
+				
+					}while(choice == 1);
 				}catch(BankingException e) {
 					logger.log(Level.WARNING,e.getMessage());
-				}
+			}
 				break;
 			case 9:
 				System.out.println( "Enter the account number ");
 				long accNo = bankScanner.nextLong();
 				bankScanner.nextLine();
-				zBank.accountDeactivate(accNo);
+				zBank.accountDeactivate(accNo,Status.INACTIVE);
 				
 				break;
 			case 10:
@@ -180,7 +186,7 @@ public class BankTester {
 				System.out.println("Enter the userId");
 				 userId = bankScanner.nextInt();
 				 bankScanner.nextLine();
-				zBank.userDeactivate(userId);
+				zBank.userDeactivate(userId,Status.ACTIVE);
 				break;
 			case 11:
 				changePassword();
@@ -209,7 +215,7 @@ public class BankTester {
 		do{
 			try {
 			System.out.println(" 1. Add a new customer \n 2. Create a account for customer \n 3. Get all the customers details "
-					+ "\n 4. Get all account details of a customer \n 5. Deactivate user \n 6. Deposit cash \n 7. Withdraw cash \n 8. change password \n 9. get your details \n 0. Logout ");
+					+ "\n 4. Get all account details of a customer \n 5. Deactivate account \n 6. Deposit cash \n 7. Withdraw cash \n 8. change password \n 9. get your details \n 0. Logout ");
 			
 			
 			select = bankScanner.nextInt();
@@ -241,19 +247,17 @@ public class BankTester {
 			case 5:
 				System.out.println( "Enter the account number ");
 				long accNo = bankScanner.nextLong();
-				zBank.accountDeactivate(accNo);
+				zBank.accountDeactivate(accNo,Status.INACTIVE);
 				break;
 			case 6:
 			case 7:
 				
 				Transaction transaction = new Transaction();
 				
-				String description = "Cash deposit";
-				TransactionType type = TransactionType.DEPOSIT;
-			
+				TransactionDescription description = TransactionDescription.DEPOSIT;
+	
 				if(select == 7) {
-					description = "Cash Withdrawl";
-					 type = TransactionType.WITHDRAW;
+					description =  TransactionDescription.WITHDRAW;
 				}
 				
 				System.out.println("Enter the userId ");
@@ -275,7 +279,7 @@ public class BankTester {
 				 transaction.setDescription(description);
 				 
 				 try {
-				 zBank.transferMoney(transaction,type);
+				 zBank.transferMoney(transaction);
 				 }
 				 catch(BankingException e) {
 					 System.out.println(e.getMessage());
@@ -310,7 +314,7 @@ public class BankTester {
 		do{
 			try {
 		System.out.println(" 1. Get personal details \n 2. Get all account details\n 3. Get account balance \n 4. Get"
-					+ " overall account balance \n 5. Money transfer within bank \n 6. Money transfer with other bank \n 7. Get transaction details "
+					+ " overall account balance \n 5. Money transfer within bank \n 6. Money transfer with other bank  "
 					+ "\n 8. Get transaction details of particular account \n 0. Logout ");
 			TransactionReq requirement = new TransactionReq();
 			
@@ -348,7 +352,7 @@ public class BankTester {
 				break;
 			case 5:
 			case 6:
-			TransactionType type = TransactionType.INTRA_BANK;
+			
 			Transaction transaction = new Transaction();
 			transaction.setUserId(this.userId);
 			System.out.println("Enter your account number ");
@@ -362,17 +366,16 @@ public class BankTester {
 			System.out.println("Enter the amount you want to send ");
 			transaction.setAmount(bankScanner.nextInt());
 			bankScanner.nextLine();
-			String description = "With in bank transfer ";
+			TransactionDescription description = TransactionDescription.INTRA_BANK;
 		
 			if(select == 6) {
-				description = "Bank to bank transfer";
-				type = TransactionType.INTER_BANK;
+				description = TransactionDescription.INTER_BANK;
+	
 			}
 			transaction.setDescription(description);
-			zBank.transferMoney(transaction,type);
+			zBank.transferMoney(transaction);
 			break;
 			
-			case 7:
 			case 8:
 				System.out.println(" 1. Get All transaction \n 2. Get all success transaction \n 3. Get all failed transaction "
 						+ "\n 4. get all credited transaction \n 5. Get all debited transaction ");
@@ -447,11 +450,9 @@ public class BankTester {
 				requirement.setUserId(this.userId);
 				
 				
-				Map<Long,List<Transaction>> transactionMap = zBank.getTransactionDetails(requirement);
-				for(long acNo :transactionMap.keySet()) {
-					System.out.println("The transaction detail for account number "+acNo);
-					printTransaction(transactionMap.get(acNo));
-				}
+				List<Transaction> transactionlist = zBank.getAccountTransaction(requirement);
+		
+				printTransaction(transactionlist);
 				
 				break;
 			default :
@@ -480,9 +481,10 @@ public class BankTester {
 		bankScanner.nextLine();
 		account.setBranchId(branchId);
 		
-		System.out.println("Enter the account type ");
-		String accountType = bankScanner.nextLine();
-		account.setAccountType(accountType);
+		System.out.println("Enter the account type \n 0. Current \n 1. Savings \n 2.Salary \n 3. Fixed deposit " );
+		int accountType = bankScanner.nextInt();
+		bankScanner.nextLine();
+		account.setAccountType(AccountType.values()[accountType]);
 	    
 		zBank.addAccount(account);
  
@@ -510,15 +512,16 @@ public class BankTester {
 			int age = bankScanner.nextInt();
 			bankScanner.nextLine();
 		
-			System.out.println( "Enter the gender ");
-			String gender = bankScanner.nextLine();
+			System.out.println( "Enter the gender \n 0. Male \n 1. Female \n 2. Other ");
+			int gender = bankScanner.nextInt();
+			bankScanner.nextLine();
 			
-			customer.setRole("CUSTOMER");
+			customer.setRole(UserType.CUSTOMER);
 			customer.setName(name);
 			customer.setEmail(email);
 			customer.setMobile(mobile);
 			customer.setAge(age);
-			customer.setGender(gender);
+			customer.setGender(Gender.values()[gender]);
 			
 			System.out.println( "Enter the Aadhar no ");
 			
@@ -560,11 +563,10 @@ public class BankTester {
     	
     	System.out.println("Enter the new password");
     	newPass = bankScanner.nextLine();
-    	passLoop = zBank.isvalidPassword(newPass);
     	
-    	}while(!passLoop);
     	
     	zBank.changePassword(userId, newPass);
+    	}while(!passLoop);
     }
     
     private void printAccounts(Map<Long, Account> accountMap) throws BankingException {

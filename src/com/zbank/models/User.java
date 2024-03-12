@@ -1,5 +1,8 @@
 package com.zbank.models;
 
+import com.zbank.enums.Gender;
+import com.zbank.enums.Status;
+import com.zbank.enums.UserType;
 
 public class User{
 	
@@ -8,15 +11,15 @@ public class User{
 	private String name;
 	private String email;
 	private long mobile;
-	private String status ;
+	private Status status = Status.ACTIVE;
 	private int age;
-	private String gender;
-	private String role;
+	private Gender gender;
+	private UserType role;
 	
-	public String getRole() {
+	public UserType getRole() {
 		return role;
 	}
-	public void setRole(String role) {
+	public void setRole(UserType role) {
 		this.role = role;
 	}
 	public int getUserId() {
@@ -49,10 +52,10 @@ public class User{
 	public void setMobile(long mobile) {
 		this.mobile = mobile;
 	}
-	public String getStatus() {
+	public Status getStatus() {
 		return status;
 	}
-	public void setStatus(String status) {
+	public void setStatus(Status status) {
 		this.status = status;
 	}
 	public int getAge() {
@@ -61,10 +64,10 @@ public class User{
 	public void setAge(int age) {
 		this.age = age;
 	}
-	public String getGender() {
+	public Gender getGender() {
 		return gender;
 	}
-	public void setGender(String gender) {
+	public void setGender(Gender gender) {
 		this.gender = gender;
 	}
 

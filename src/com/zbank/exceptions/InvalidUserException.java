@@ -1,4 +1,4 @@
-package com.zbank.utilities;
+package com.zbank.exceptions;
 
 public class InvalidUserException extends Exception {
 
@@ -9,3 +9,4 @@ public class InvalidUserException extends Exception {
 	}
 
 }
+	

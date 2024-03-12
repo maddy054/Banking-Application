@@ -1,15 +1,15 @@
 package com.zbank.logics;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import com.zbank.enums.Status;
+import com.zbank.enums.TransactionDescription;
+import com.zbank.enums.TransactionStatus;
 import com.zbank.enums.TransactionType;
+import com.zbank.enums.UserType;
 import com.zbank.exceptions.BankingException;
+import com.zbank.exceptions.InvalidUserException;
 import com.zbank.exceptions.WrongPasswordException;
 import com.zbank.models.Account;
 import com.zbank.models.Branch;
@@ -19,26 +19,20 @@ import com.zbank.models.Transaction;
 import com.zbank.models.TransactionReq;
 import com.zbank.persistence.Connector;
 import com.zbank.persistence.DbConnector;
-import com.zbank.utilities.InvalidUserException;
+import com.zbank.utilities.SHAHash;
+import com.zbank.utilities.Validation;
 
 public class ZBank {
 	private Connector dbConnector = new DbConnector();
 	
-	public String getUser(int userId) throws BankingException,InvalidUserException {
+	public UserType getUser(int userId) throws BankingException,InvalidUserException {
 		return dbConnector.getRole(userId);
-	}
-	
-	public boolean isvalidPassword(String password) throws BankingException {
-		
-		 Pattern pattern = Pattern.compile("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W]).{8,16}$");
-		  Matcher match = pattern.matcher(password);
-		  return match.matches();	
 	}
 	
 	public void checkPassword(int userId, String password) throws BankingException, WrongPasswordException {
 
 			String originalPassword = dbConnector.getPassword(userId);
-			String enteredPassword = getHash(password);
+			String enteredPassword = SHAHash.getHash(password);
 			
 			boolean isCorrect = originalPassword.equals(enteredPassword);
 			if(!isCorrect) {
@@ -47,7 +41,7 @@ public class ZBank {
 	}
 
 	public void addEmployees(Employee emploee,String password) throws BankingException{
-		password = getHash(password);
+		password =  SHAHash.getHash(password);
 	    emploee.setPassword(password);
 		dbConnector.addEmployee(emploee);	
 	}
@@ -58,7 +52,7 @@ public class ZBank {
 	}
 	
 	public void addCustomer(Customer customer,String password) throws BankingException {
-		password = getHash(password);
+		password =  SHAHash.getHash(password);
 		customer.setPassword(password);
 		dbConnector.addCustomer(customer);
 	}
@@ -68,15 +62,18 @@ public class ZBank {
 		dbConnector.addAccount(account);
 	}
 	public void changePassword(int userId,String newPassword) throws BankingException {
-	
-		dbConnector.changePassword(userId, getHash(newPassword));
+		
+		Validation.isvalidPassword(newPassword);
+		dbConnector.changePassword(userId, SHAHash.getHash(newPassword));
 	}
 	
 	public List<Long> getAccountNumbers(int userId) throws BankingException {
 		return dbConnector.getAccountNumbers(userId);
 	}
 	
-	public void transferMoney(Transaction transaction,TransactionType type) throws BankingException {
+	public void transferMoney(Transaction transaction) throws BankingException {
+		
+		TransactionDescription description = transaction.getDescription();
 		
 		long accountNumber = transaction.getAccountNo();
 		dbConnector.verifyAccount(transaction.getUserId(),accountNumber);
@@ -93,26 +90,27 @@ public class ZBank {
 		int amount = transaction.getAmount();
 		
 		long closingBalance = balance - amount;
-		String transactionType = "DEBIT";
-		 transaction.setStatus("SUCCESS");
+		TransactionType transactionType = TransactionType.DEBIT ;
+		
+		transaction.setStatus(TransactionStatus.SUCCESS);
 		transaction.setOpenBalance(balance);
 		transaction.setDateTime(System.currentTimeMillis());
 	
-		if(type != TransactionType.DEPOSIT) {
+		if(description != TransactionDescription.DEPOSIT) {
 			if(balance < amount) {	
 				
 				transaction.setType(transactionType);
 		        transaction.setCloseBalance(balance);
-		        transaction.setStatus("FAILED");
+		        transaction.setStatus(TransactionStatus.FAILED);
 		        dbConnector.updateTransaction(transaction);
 		        
     			throw new BankingException("Insufficient balance");
    			}
 		}
-        switch(type) {
+        switch(description) {
 
         case DEPOSIT:
-        	transactionType = "CREDIT";
+        	transactionType = TransactionType.CREDIT;
         	closingBalance = balance + amount;
    		  	break;   
    		  	
@@ -132,7 +130,7 @@ public class ZBank {
         	transaction.setTransactionAccNo(accountNumber);
         	transaction.setAccountNo(receiverAccount);
         	
-        	transactionType = "CREDIT";
+        	transactionType = TransactionType.CREDIT;
         	closingBalance = receiverBalance + amount;
         	
         	break;
@@ -147,12 +145,12 @@ public class ZBank {
 		
 
 	
-	public void accountDeactivate(long accountNumber) throws BankingException {
-		dbConnector.deactivateAccount(accountNumber);
+	public void accountDeactivate(long accountNumber,Status status) throws BankingException {
+		dbConnector.setAccountStatus(accountNumber, status);
 	}
 	
-	public void userDeactivate(int userId) throws BankingException {
-		dbConnector.deactivateAccount(userId);
+	public void userDeactivate(int userId,Status status) throws BankingException {
+		dbConnector.setUserStatus(userId, status);
 	}
 	
 	public Map<Integer, Branch> getAllBranch() throws BankingException {
@@ -169,14 +167,8 @@ public class ZBank {
 	public  Map<Long, Account> getAccountDetails(int userId) throws BankingException {
 		return dbConnector.getAccountDetails(userId);
 	}
-	public Map<Integer,Map<Long,Account>> getAllAccounts(int limit,int offset) throws BankingException{
-		return dbConnector.getAllAccounts(limit, offset);
-	}
-	
-	public  Map<Long, List<Transaction>> getTransactionDetails(TransactionReq requirement) throws BankingException {
-		
-		 requirement.setForAllAccount(true);
-		return dbConnector.getTransactionDetail(requirement);
+	public Map<Integer,Map<Long,Account>> getAllAccounts(int branchId,int limit,int offset) throws BankingException{
+		return dbConnector.getAllAccounts(branchId,limit, offset);
 	}
 	
    public List<Transaction> getAccountTransaction(TransactionReq requirement) throws BankingException{
@@ -185,7 +177,7 @@ public class ZBank {
 	   dbConnector.verifyAccount(requirement.getUserId(),accountNumber);
 	   
 	  
-	   return dbConnector.getTransactionDetail(requirement).get(accountNumber);
+	   return dbConnector.getTransactionDetail(requirement);
    }
   
    public long getAccountBalance(int userId,long accountNumber) throws BankingException {
@@ -196,23 +188,5 @@ public class ZBank {
    public long getOverAllBalance(int userId) throws BankingException {
 	   return dbConnector.getOverAllbalance(userId);
    }
-
-	public String getHash(String password) throws  BankingException {
-		try {
-			MessageDigest digest = MessageDigest.getInstance("SHA-256");
-			byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-			 StringBuilder hexString = new StringBuilder(2 * hash.length);
-			    for (int i = 0; i < hash.length; i++) {
-			        String hex = Integer.toHexString(0xff & hash[i]);
-			        if(hex.length() == 1) {
-			            hexString.append('0');
-			        }
-			        hexString.append(hex);
-			    }
-			    return hexString.toString();
-		}catch(NoSuchAlgorithmException e) {
-			throw new BankingException(e.getMessage(),e);
-		}
-	}
 		
 }

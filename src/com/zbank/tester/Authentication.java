@@ -6,18 +6,19 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.zbank.enums.UserType;
 import com.zbank.exceptions.BankingException;
+import com.zbank.exceptions.InvalidUserException;
 import com.zbank.exceptions.WrongPasswordException;
 import com.zbank.logics.ZBank;
-import com.zbank.utilities.InvalidUserException;
 
 
-public class BankingTester {
-	Logger logger = Logger.getLogger(BankingTester.class.getName());
+public class Authentication {
+
 	
 	public static void main(String... args) throws SQLException {
 
-		Logger logger = Logger.getLogger(BankingTester.class.getName());
+		Logger logger = Logger.getLogger(Authentication.class.getName());
 		try(Scanner bankScanner = new Scanner(System.in)){
 			
 		
@@ -25,10 +26,7 @@ public class BankingTester {
 			while(loop) {
 
 				try{
-					/*
-					 * QueryBuilder qb = new QueryBuilder(null); qb.getColumnNames(new
-					 * ArrayList<Integer>());
-					 */
+				
 					ZBank zBank = new ZBank();
 
 					System.out.println( "Welcome to Z Bank");
@@ -37,7 +35,7 @@ public class BankingTester {
 					int userId = bankScanner.nextInt();
 					bankScanner.nextLine();
 
-					String user = zBank.getUser(userId);
+					UserType user = zBank.getUser(userId);
 					boolean passwordLoop = true;
 					do {
 						try {
@@ -53,19 +51,19 @@ public class BankingTester {
 					} while (passwordLoop);
 
 					System.out.println( "welcome to ZBank.\nYou successfully logged in ");
-					BankTester bankTester = new BankTester();
+					Authorization bankTester = new Authorization();
 					bankTester.setUserId(userId);
-					switch (user) {
+					switch (user.ordinal()) {
 
-					case "ADMIN":
+					case 0:
 						 bankTester.adminAccess();
 						break;
 						
-					case "EMPLOYEE":
+					case 1:
 						bankTester.employeeAccess();
 						break;
 					
-					case "CUSTOMER":
+					case 2:
 						bankTester.customerAccess();
 						break;
 					}
