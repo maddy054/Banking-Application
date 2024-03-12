@@ -1,7 +1,6 @@
-package models;
+package com.zbank.models;
 
 
-import java.util.Map;
 
 public class Account {
 	private int userId;
@@ -46,14 +45,5 @@ public class Account {
 	}
 	public void setBranchId(int branchId) {
 		BranchId = branchId;
-	}
-	
-	public void setAll(Map<String,Object> account) {
-		setUserId((int) account.get("USER_ID"));
-		setAccountNo((long) account.get("ACCOUNT_NUMBER"));
-		setBranchId((int) account.get("BRANCH_ID"));
-		setBalance((long) account.get("BALANCE"));
-		setAccountStatus((String) account.get("STATUS"));
-		setAccountType((String) account.get("ACCOUNT_TYPE"));
 	}
 }

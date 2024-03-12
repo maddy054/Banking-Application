@@ -1,8 +1,5 @@
-package models;
+package com.zbank.models;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class User{
 	
@@ -11,7 +8,7 @@ public class User{
 	private String name;
 	private String email;
 	private long mobile;
-	private String status = "ACTIVE";
+	private String status ;
 	private int age;
 	private String gender;
 	private String role;
@@ -69,30 +66,6 @@ public class User{
 	}
 	public void setGender(String gender) {
 		this.gender = gender;
-	}
-	public List<Object> getAll() {
-		List<Object> customer = new ArrayList<Object>();
-		
-		customer.add(userId);
-		customer.add(password);
-		customer.add(name);
-		customer.add(mobile);
-		customer.add(email);
-		customer.add(age);
-		customer.add(gender);
-		customer.add(status);
-		customer.add(role);
-		return customer; 
-	}
-	public void setAllUser(Map<String,Object> user) {
-		
-		setUserId((int) user.get("USER_ID"));
-		setName((String) user.get("NAME"));
-		setMobile((long) user.get("MOBILE"));
-		setEmail((String) user.get("EMAIL"));
-		setAge((int) user.get("AGE"));
-		setGender((String) user.get("GENDER"));
-		setStatus((String) user.get("STATUS"));
 	}
 
 }

@@ -1,4 +1,4 @@
-package tester;
+package com.zbank.tester;
 
 
 import java.sql.SQLException;
@@ -6,12 +6,10 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import banklogicals.ZBank;
-import models.BankingException;
-
-import utilities.InvalidUserException;
-
-import utilities.WrongPasswordException;
+import com.zbank.exceptions.BankingException;
+import com.zbank.exceptions.WrongPasswordException;
+import com.zbank.logics.ZBank;
+import com.zbank.utilities.InvalidUserException;
 
 
 public class BankingTester {

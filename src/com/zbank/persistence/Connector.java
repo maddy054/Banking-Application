@@ -1,18 +1,18 @@
-package persistance;
+package com.zbank.persistence;
 
 
 
 import java.util.List;
 import java.util.Map;
 
-import models.Account;
-import models.BankingException;
-import models.Branch;
-import models.Customer;
-import models.Employee;
-import models.Transaction;
-import models.TransactionReq;
-import utilities.InvalidUserException;
+import com.zbank.exceptions.BankingException;
+import com.zbank.models.Account;
+import com.zbank.models.Branch;
+import com.zbank.models.Customer;
+import com.zbank.models.Employee;
+import com.zbank.models.Transaction;
+import com.zbank.models.TransactionReq;
+import com.zbank.utilities.InvalidUserException;
 
 
 public interface Connector {
@@ -39,7 +39,7 @@ public interface Connector {
 	
 	public Map<Integer,Branch> getAllBranches() throws BankingException;
 	
-	public Customer getCustomerDetails(int limit) throws BankingException;
+	public Customer getCustomerDetails(int userId) throws BankingException;
 	
 	public  Map<Long,Account> getAccountDetails(int userId) throws BankingException;
 	
@@ -56,6 +56,8 @@ public interface Connector {
 	
 	public void verifyAccount(int userId,long accountNumber) throws BankingException ;
 
-	public long getOverAllbalance(int userId) throws BankingException; 
+	public long getOverAllbalance(int userId) throws BankingException;
+
+	public Employee getEmployeeDetails(int userId) throws BankingException; 
 
 }

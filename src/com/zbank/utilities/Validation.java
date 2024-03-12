@@ -1,4 +1,4 @@
-package utilities;
+package com.zbank.utilities;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

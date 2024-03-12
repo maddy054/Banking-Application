@@ -1,8 +1,8 @@
-package models;
+package com.zbank.enums;
 
 public enum TransactionType {
 	DEPOSIT,
 	WITHDRAW,
-	WITHIN_BANK,
-	BANK_TO_BANK
+	INTER_BANK,
+	INTRA_BANK
 }

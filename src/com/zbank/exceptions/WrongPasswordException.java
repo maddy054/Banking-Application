@@ -1,6 +1,4 @@
-package utilities;
-
-import models.BankingException;
+package com.zbank.exceptions;
 
 public class WrongPasswordException extends Exception{
 

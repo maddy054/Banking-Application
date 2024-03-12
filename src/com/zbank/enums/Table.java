@@ -1,4 +1,4 @@
-package models;
+package com.zbank.enums;
 
 public enum Table {
 	USER("USER_DETAILS"),

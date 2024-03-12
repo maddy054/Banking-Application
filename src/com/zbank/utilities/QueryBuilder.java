@@ -1,4 +1,4 @@
-package persistance;
+package com.zbank.utilities;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -21,17 +21,28 @@ public class QueryBuilder {
     private String tableName;
     private List<Integer> uesdColumns;
     private List<Integer> whereConditions;
-    private boolean limit = false;
-    private boolean offset = false;
-    private boolean between = false;
+    private boolean isLimit = false;
+    private boolean isOffset = false;
+    private List<Integer> between;
+    
     private Connection getConnection() throws SQLException {
 		return DriverManager.getConnection(url, userName, password);
 	}
+    public void seturl(String url) {
+    	this.url = url;
+    }
+    public void setUserName(String userName) {
+    	this.userName = userName;
+    }
+    public void setPassword(String password) {
+    	this.password = password;
+    }
 
     public QueryBuilder(String tableName) {
         this.tableName = tableName;
         this.uesdColumns = new ArrayList<>();
         this.whereConditions = new ArrayList<>();
+        this.between = new ArrayList<>();
     }
 
     public QueryBuilder column(int... columns) {
@@ -51,21 +62,24 @@ public class QueryBuilder {
     }
  
     public QueryBuilder limit() {
-    	limit = true;
+    	this.isLimit = true;
     	return this;
     }
+    
     public QueryBuilder offset() {
-    	offset = true;
+    	this.isOffset = true;
     	return this;
     }
-    public QueryBuilder between() {
-    	between = true;
-    	return this;
+    
+    public QueryBuilder between(int... columns) {
+    	for(int column : columns) {
+    		between.add(column);
+    	}
+     	return this;
     }
+  
     public String buildSelect() throws SQLException {
         StringBuilder query = new StringBuilder("SELECT ");
-        
-       System.out.println("used "+uesdColumns);
       
         if (uesdColumns.isEmpty()) {
         	
@@ -86,21 +100,22 @@ public class QueryBuilder {
         
         if (!whereConditions.isEmpty()) {
             query.append(" WHERE ");
-            System.out.println("Where column "+getColumnNames(whereConditions));
             for (int i = 0; i < getColumnNames(whereConditions).size(); i++) {
                 query.append(getColumnNames(whereConditions).get(i)).append(" = ? ");
+                
                 if (i < whereConditions.size() - 1) {
                     query.append(" AND ");
                 }
             }
         }
-        if(between) {
-        	query.append(" AND BETWEEN ? AND ? ");
+        if(!between.isEmpty()) {
+        	
+        	query.append(" AND ").append(getColumnNames(between).get(0)).append(" BETWEEN ? AND ? ");
         }
-        if(limit) {
+        if(isLimit) {
         	query.append(" LIMIT ? ");
         }
-        if(offset) {
+        if(isOffset) {
         	query.append(" OFFSET ? ");
         }
         System.out.println(query);
@@ -135,10 +150,9 @@ public class QueryBuilder {
 
     public String buildInsert() throws SQLException {
         StringBuilder query = new StringBuilder("INSERT INTO ").append(tableName);
-        System.out.println("used column "+uesdColumns);
+
         List<String> insertColumns = getColumnNames(uesdColumns);
-        System.out.println("insert column "+insertColumns);
-        
+      
         if(!insertColumns.isEmpty()) {
         	query.append(" ( ");
         	
@@ -161,6 +175,7 @@ public class QueryBuilder {
         }
 
         query.append(")");
+ 
         System.out.println(query);
         return query.toString();
     }
@@ -170,15 +185,8 @@ public class QueryBuilder {
     	List<String> columnNames = new ArrayList<String>();
         try(Connection connection = getConnection()) {
         	DatabaseMetaData metaData = connection.getMetaData();
-            
+          
         	 try (ResultSet rs = metaData.getColumns("ZBank", null, tableName, null)) {
-        		 
-    
-        		 if(column.isEmpty()) {
-        			 while(rs.next()) {
-        				 columnNames.add(rs.getString("COLUMN_NAME")); 
-        			 }
-        		 }else {
         			 int count =1;
         			 while (rs.next()) {
         				 if(column.contains(count)) {
@@ -187,7 +195,6 @@ public class QueryBuilder {
         				 }
         				 count = count+1;
         			 }
-        		 }
         		return columnNames;
             }
         }
@@ -204,7 +211,6 @@ public class QueryBuilder {
 	    		ResultSet resultSet = statement.executeQuery() ;
 	    		ResultSetMetaData metaData = resultSet.getMetaData();
 	    		int columnCount = metaData.getColumnCount();
-	   			System.out.println("column count "+columnCount);
 	   			
 	   			while (resultSet.next()) {
 	   				
@@ -230,7 +236,6 @@ public class QueryBuilder {
 	private void setValues(PreparedStatement statement,Object[] values) throws SQLException {
 		
 		for(int i=1;i <= values.length;i++) {
-			System.out.println("values "+values[i-1]);
 		
 			statement.setObject(i,values[i-1]);
 		}

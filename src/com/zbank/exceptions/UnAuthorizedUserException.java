@@ -1,4 +1,4 @@
-package utilities;
+package com.zbank.exceptions;
 
 public class UnAuthorizedUserException extends Exception{
 	private static final long serialVersionUID = 1L;

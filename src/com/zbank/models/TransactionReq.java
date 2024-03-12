@@ -1,4 +1,7 @@
-package models;
+package com.zbank.models;
+
+import com.zbank.enums.TransactionDetail;
+import com.zbank.enums.TransactionPeriod;
 
 public class TransactionReq {
 	

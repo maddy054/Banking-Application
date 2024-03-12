@@ -1,4 +1,4 @@
-package banklogicals;
+package com.zbank.logics;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -8,20 +8,18 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import helper.Helper;
-import invalidexception.InputInvalidException;
-import models.Account;
-import models.BankingException;
-import models.Branch;
-import models.Customer;
-import models.Employee;
-import models.Transaction;
-import models.TransactionReq;
-import models.TransactionType;
-import persistance.Connector;
-import persistance.DbConnector;
-import utilities.InvalidUserException;
-import utilities.WrongPasswordException;
+import com.zbank.enums.TransactionType;
+import com.zbank.exceptions.BankingException;
+import com.zbank.exceptions.WrongPasswordException;
+import com.zbank.models.Account;
+import com.zbank.models.Branch;
+import com.zbank.models.Customer;
+import com.zbank.models.Employee;
+import com.zbank.models.Transaction;
+import com.zbank.models.TransactionReq;
+import com.zbank.persistence.Connector;
+import com.zbank.persistence.DbConnector;
+import com.zbank.utilities.InvalidUserException;
 
 public class ZBank {
 	private Connector dbConnector = new DbConnector();
@@ -50,7 +48,7 @@ public class ZBank {
 
 	public void addEmployees(Employee emploee,String password) throws BankingException{
 		password = getHash(password);
-	 emploee.setPassword(password);
+	    emploee.setPassword(password);
 		dbConnector.addEmployee(emploee);	
 	}
 	
@@ -118,7 +116,7 @@ public class ZBank {
         	closingBalance = balance + amount;
    		  	break;   
    		  	
-        case WITHIN_BANK:
+        case INTRA_BANK:
         	
         	transaction.setType(transactionType);
             transaction.setCloseBalance(closingBalance);
@@ -165,6 +163,9 @@ public class ZBank {
 		return dbConnector.getCustomerDetails(userId);
 	}
 	
+	public Employee getEmployeeDetails(int userId) throws BankingException {
+		return dbConnector.getEmployeeDetails(userId);
+	}
 	public  Map<Long, Account> getAccountDetails(int userId) throws BankingException {
 		return dbConnector.getAccountDetails(userId);
 	}

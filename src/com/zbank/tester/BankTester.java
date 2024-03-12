@@ -1,4 +1,4 @@
-package tester;
+package com.zbank.tester;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -9,18 +9,18 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import banklogicals.ZBank;
-import models.Account;
-import models.BankingException;
-import models.Branch;
-import models.Customer;
-import models.Employee;
-import models.Transaction;
-import models.TransactionDetail;
-import models.TransactionPeriod;
-import models.TransactionReq;
-import models.TransactionType;
-import utilities.WrongPasswordException;
+import com.zbank.enums.TransactionDetail;
+import com.zbank.enums.TransactionPeriod;
+import com.zbank.enums.TransactionType;
+import com.zbank.exceptions.BankingException;
+import com.zbank.exceptions.WrongPasswordException;
+import com.zbank.logics.ZBank;
+import com.zbank.models.Account;
+import com.zbank.models.Branch;
+import com.zbank.models.Customer;
+import com.zbank.models.Employee;
+import com.zbank.models.Transaction;
+import com.zbank.models.TransactionReq;
 
 public class BankTester {
 	private Logger logger = Logger.getLogger(BankingTester.class.getName());
@@ -209,7 +209,7 @@ public class BankTester {
 		do{
 			try {
 			System.out.println(" 1. Add a new customer \n 2. Create a account for customer \n 3. Get all the customers details "
-					+ "\n 4. Get all account details of a customer \n 5. Deactivate user \n 6. Deposit cash \n 7. Withdraw cash \n 0. Logout ");
+					+ "\n 4. Get all account details of a customer \n 5. Deactivate user \n 6. Deposit cash \n 7. Withdraw cash \n 8. change password \n 9. get your details \n 0. Logout ");
 			
 			
 			select = bankScanner.nextInt();
@@ -285,6 +285,11 @@ public class BankTester {
 			case 8:
 				changePassword();
 				break;
+			case 9:
+				Employee employee = zBank.getEmployeeDetails(this.userId);
+				System.out.println(employee);
+				
+				break;
 			default :
 				logger.log(Level.WARNING,"Enter the correct value");
 				break;
@@ -343,7 +348,7 @@ public class BankTester {
 				break;
 			case 5:
 			case 6:
-			TransactionType type = TransactionType.WITHIN_BANK;
+			TransactionType type = TransactionType.INTRA_BANK;
 			Transaction transaction = new Transaction();
 			transaction.setUserId(this.userId);
 			System.out.println("Enter your account number ");
@@ -361,7 +366,7 @@ public class BankTester {
 		
 			if(select == 6) {
 				description = "Bank to bank transfer";
-				type = TransactionType.BANK_TO_BANK;
+				type = TransactionType.INTER_BANK;
 			}
 			transaction.setDescription(description);
 			zBank.transferMoney(transaction,type);
@@ -396,7 +401,7 @@ public class BankTester {
 					
 				}
 				
-				System.out.println(" 1. For this month \n 2. For past one month \n 3. For previous month \n 4 For last 3 months \n 5. For last 6 month \n 0. go back ");
+				System.out.println(" 1. For this month \n 2. For last 30 days \n 3. For previous month \n 4 For last 3 months \n 5. For last 6 month \n 0. go back ");
 				int timeCondition = bankScanner.nextInt();
 				TransactionPeriod period = TransactionPeriod.THIS_MONTH;
 				
@@ -404,7 +409,7 @@ public class BankTester {
 				case 1:
 					break;
 				case 2:
-					period = TransactionPeriod.PAST_MONTH;
+					period = TransactionPeriod.LAST_30_DAYS;
 					break;
 				case 3:
 					period = TransactionPeriod.PREVIOUS_MONTH;
