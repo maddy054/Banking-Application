@@ -324,7 +324,7 @@ public class DbConnector implements Connector {
 			QueryBuilder queryBuilder = new QueryBuilder(Table.ACCOUNTS.get());
 			String query = queryBuilder.where(3).limit().offset().buildSelect();
 		
-			for(Map<Integer, Object> map : queryBuilder.executeQuery(query, limit,offset)) {
+			for(Map<Integer, Object> map : queryBuilder.executeQuery(query, branchId,limit,offset)) {
 				Account account = new Account();
 				setAccounts(account,map);
 			

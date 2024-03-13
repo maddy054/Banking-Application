@@ -1,7 +1,8 @@
 package com.zbank.logics;
 
 import java.util.List;
-import java.util.Map;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.zbank.enums.Status;
 import com.zbank.enums.TransactionDescription;
@@ -23,25 +24,30 @@ import com.zbank.utilities.SHAHash;
 import com.zbank.utilities.Validation;
 
 public class ZBank {
+	
 	private Connector dbConnector = new DbConnector();
 	
 	public UserType getUser(int userId) throws BankingException,InvalidUserException {
 		return dbConnector.getRole(userId);
 	}
 	
-	public void checkPassword(int userId, String password) throws BankingException, WrongPasswordException {
+	public void checkPassword(JSONObject json) throws BankingException, WrongPasswordException {
+		int userId = json.getInt("user_id");
+		String password = (String) json.get("password");
+		
 
-			String originalPassword = dbConnector.getPassword(userId);
-			String enteredPassword = SHAHash.getHash(password);
+		String originalPassword = dbConnector.getPassword(userId);
+		String enteredPassword = SHAHash.getHash(password);
 			
-			boolean isCorrect = originalPassword.equals(enteredPassword);
-			if(!isCorrect) {
-				throw new WrongPasswordException("Incorrect password!! try again ");
-			}
+		boolean isCorrect = originalPassword.equals(enteredPassword);
+		if(!isCorrect) {
+			throw new WrongPasswordException("Incorrect password!! try again ");
+		}
 	}
 
-	public void addEmployees(Employee emploee,String password) throws BankingException{
-		password =  SHAHash.getHash(password);
+	public void addEmployees(Employee emploee) throws BankingException{
+		
+		String password =  SHAHash.getHash(emploee.getPassword());
 	    emploee.setPassword(password);
 		dbConnector.addEmployee(emploee);	
 	}
@@ -68,7 +74,8 @@ public class ZBank {
 	}
 	
 	public List<Long> getAccountNumbers(int userId) throws BankingException {
-		return dbConnector.getAccountNumbers(userId);
+		return (dbConnector.getAccountNumbers(userId));
+		
 	}
 	
 	public void transferMoney(Transaction transaction) throws BankingException {
@@ -153,40 +160,45 @@ public class ZBank {
 		dbConnector.setUserStatus(userId, status);
 	}
 	
-	public Map<Integer, Branch> getAllBranch() throws BankingException {
-		return dbConnector.getAllBranches();
+	public JSONObject getAllBranch() throws BankingException {
+	
+		return JSONConverter.getJson(dbConnector.getAllBranches());
 	}
 	
-	public  Customer getCustomerDetails(int userId) throws BankingException {
-		return dbConnector.getCustomerDetails(userId);
+	public  JSONObject getCustomerDetails(int userId) throws BankingException {
+		
+		return JSONConverter.getCustomerJson( dbConnector.getCustomerDetails(userId));
+		
 	}
 	
-	public Employee getEmployeeDetails(int userId) throws BankingException {
-		return dbConnector.getEmployeeDetails(userId);
+	public JSONObject getEmployeeDetails(int userId) throws BankingException {
+		return JSONConverter.getEmployeeJson(dbConnector.getEmployeeDetails(userId));
 	}
-	public  Map<Long, Account> getAccountDetails(int userId) throws BankingException {
-		return dbConnector.getAccountDetails(userId);
-	}
-	public Map<Integer,Map<Long,Account>> getAllAccounts(int branchId,int limit,int offset) throws BankingException{
-		return dbConnector.getAllAccounts(branchId,limit, offset);
+	public  JSONObject getAccountDetails(int userId) throws BankingException {
+		return JSONConverter.getJson (dbConnector.getAccountDetails(userId));
 	}
 	
-   public List<Transaction> getAccountTransaction(TransactionReq requirement) throws BankingException{
+	public JSONObject getAllAccounts(int branchId,int limit,int offset) throws BankingException{
+		return JSONConverter.getJson( dbConnector.getAllAccounts(branchId,limit, offset));
+	}
+	
+   public JSONArray getAccountTransaction(TransactionReq requirement) throws BankingException{
 	   
 	   long accountNumber = requirement.getAccountNumber();
 	   dbConnector.verifyAccount(requirement.getUserId(),accountNumber);
 	   
 	  
-	   return dbConnector.getTransactionDetail(requirement);
+	   return JSONConverter.getJsonArray( dbConnector.getTransactionDetail(requirement));
    }
   
-   public long getAccountBalance(int userId,long accountNumber) throws BankingException {
+   public JSONObject getAccountBalance(int userId,long accountNumber) throws BankingException {
 	   dbConnector.verifyAccount(userId,accountNumber);
 	   
-	   return dbConnector.getBalance(accountNumber);
+	   return new JSONObject().put("Balance", dbConnector.getBalance(accountNumber));
    }
-   public long getOverAllBalance(int userId) throws BankingException {
-	   return dbConnector.getOverAllbalance(userId);
+   public JSONObject getOverAllBalance(int userId) throws BankingException {
+	   return new JSONObject().put("Balance", dbConnector.getOverAllbalance(userId));
+	 
    }
 		
 }

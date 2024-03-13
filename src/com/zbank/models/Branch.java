@@ -1,8 +1,5 @@
 package com.zbank.models;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class Branch {
 	private int branchId;
@@ -36,15 +33,4 @@ public class Branch {
 		this.address = address;
 	}
 	
-	public void setAll(Map<String,Object> branch) {
-		
-	}
-	public List<Object> getAll(){
-		
-		List<Object> list = new ArrayList<Object>();
-		list.add(branchName);
-		list.add(ifsc);
-		list.add(address);
-		return list;
-	}
 }

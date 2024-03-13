@@ -6,6 +6,8 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.json.JSONObject;
+
 import com.zbank.enums.UserType;
 import com.zbank.exceptions.BankingException;
 import com.zbank.exceptions.InvalidUserException;
@@ -41,8 +43,12 @@ public class Authentication {
 						try {
 							System.out.println( "Enter the password ");
 							String password = bankScanner.nextLine();
-
-							zBank.checkPassword(userId, password);
+							JSONObject json = new JSONObject();
+							json.put("user_id", userId);
+							json.put("password", password);
+							
+							zBank.checkPassword(json);
+							
 							passwordLoop = false;
 						} catch (WrongPasswordException e) {
 							logger.log(Level.WARNING,e.getMessage());

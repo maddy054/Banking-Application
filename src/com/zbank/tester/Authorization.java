@@ -1,13 +1,12 @@
 package com.zbank.tester;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.json.JSONObject;
 
 import com.zbank.enums.AccountType;
 import com.zbank.enums.Gender;
@@ -97,7 +96,20 @@ public class Authorization {
 					System.out.println("create the password ");
 					
 					String pass = bankScanner.nextLine();
-				    zBank.addEmployees(employee,pass);
+					employee.setPassword(pass);
+					
+					
+					JSONObject json = new JSONObject();
+					json.put("name",name );
+					json.put("email", email);
+					json.put("mobile", mobile);
+					json.put("age", age);
+					json.put("gender", Gender.values()[gender]);
+					json.put("user type",UserType.EMPLOYEE );
+					json.put("branch_id", branchId);
+					json.put("password", pass);
+					
+				    zBank.addEmployees(employee);
 			 
 			    break;
 			case 2:
@@ -142,8 +154,7 @@ public class Authorization {
 				userId = bankScanner.nextInt();
 				bankScanner.nextLine();
 				
-				Map<Long,Account> account = zBank.getAccountDetails(userId);
-				printAccounts(account);
+				System.out.println(zBank.getAccountDetails(userId));
 
 				break;
 			case 8:
@@ -155,13 +166,13 @@ public class Authorization {
 				
 				try {
 					do {
-						Map<Integer,Map<Long,Account>> accountsMap = zBank.getAllAccounts(branchId,10,offset);
+						System.out.println( zBank.getAllAccounts(branchId,10,offset));
 				
-						Collection<Map<Long,Account>> accounts = accountsMap.values();
+//						Collection<Map<Long,Account>> accounts = accountsMap.values();
 				
-						for(Map<Long,Account> individualAccount:accounts) {
-							printAccounts(individualAccount);
-						}
+//						for(Map<Long,Account> individualAccount:accounts) {
+//							printAccounts(individualAccount);
+//						}
 						System.out.println("1. NEXT      0. GO BACK ");
 				
 						choice = bankScanner.nextInt();
@@ -239,9 +250,8 @@ public class Authorization {
 				System.out.println("Enter the user id ");
 				userId = bankScanner.nextInt();
 				bankScanner.nextLine();
+				System.out.println(zBank.getAccountDetails(userId));
 				
-				Map<Long,Account> account = zBank.getAccountDetails(userId);
-				printAccounts(account);
 				break;
 				
 			case 5:
@@ -290,7 +300,7 @@ public class Authorization {
 				changePassword();
 				break;
 			case 9:
-				Employee employee = zBank.getEmployeeDetails(this.userId);
+				JSONObject employee = zBank.getEmployeeDetails(this.userId);
 				System.out.println(employee);
 				
 				break;
@@ -327,8 +337,9 @@ public class Authorization {
 				
 				break;
 			case 2:
-				Map<Long,Account> account = zBank.getAccountDetails(this.userId);
-				printAccounts(account);
+				System.out.println(zBank.getAccountDetails(this.userId));
+			
+		
 				break;
 			
 			case 3:
@@ -341,9 +352,8 @@ public class Authorization {
 				long accNo = accountNumbers.get( bankScanner.nextInt());
 				bankScanner.nextLine();
 				
-				long balance = zBank.getAccountBalance(this.userId,accNo);
-				logger.log(Level.INFO,"The account balance is "+balance);
 				
+				logger.log(Level.INFO,"The account balance is "+ zBank.getAccountBalance(this.userId,accNo));				
 				break;
 				
 			case 4:
@@ -449,10 +459,7 @@ public class Authorization {
 				requirement.setType(transactionCondition);
 				requirement.setUserId(this.userId);
 				
-				
-				List<Transaction> transactionlist = zBank.getAccountTransaction(requirement);
-		
-				printTransaction(transactionlist);
+				System.out.println(zBank.getAccountTransaction(requirement));
 				
 				break;
 			default :
@@ -551,8 +558,10 @@ public class Authorization {
     	
     	System.out.println("Enter the old password");
     	String oldPass = bankScanner.nextLine();
-    	
-    	zBank.checkPassword(userId, oldPass);
+    	JSONObject json = new JSONObject();
+    	json.put("user_id", this.userId);
+    	json.put("password", oldPass);
+    	zBank.checkPassword(json);
     	
     	boolean passLoop = false;
     	String newPass = null;
@@ -568,51 +577,53 @@ public class Authorization {
     	zBank.changePassword(userId, newPass);
     	}while(!passLoop);
     }
-    
-    private void printAccounts(Map<Long, Account> accountMap) throws BankingException {
-    	
-		Collection<Account> accountList = accountMap.values();
-		for(Account account : accountList) {
-			System.out.println("Account Number  - "+account.getAccountNo()); 
-			System.out.println("Account type    - "+account.getAccountType()); 
-			System.out.println("Account balance - "+account.getBalance()); 
-			System.out.println("Account branch  - "+account.getBranchId());
-			System.out.println("Account status  - "+account.getAccountStatus());
-			System.out.println();
-			
-		}
-    }
+//    
+//    private void printAccounts(Map<Long, Account> accountMap) throws BankingException {
+//    	
+//		Collection<Account> accountList = accountMap.values();
+//		for(Account account : accountList) {
+//			System.out.println("Account Number  - "+account.getAccountNo()); 
+//			System.out.println("Account type    - "+account.getAccountType()); 
+//			System.out.println("Account balance - "+account.getBalance()); 
+//			System.out.println("Account branch  - "+account.getBranchId());
+//			System.out.println("Account status  - "+account.getAccountStatus());
+//			System.out.println();
+//			
+//		}
+//    }
     
     private void getCustomer(int userId) throws BankingException {
-    	Customer customer = zBank.getCustomerDetails(userId);
-		System.out.println("User id          - "+customer.getUserId());
-		System.out.println("Name of customer - "+customer.getName());
-		System.out.println("Mobile number    - "+customer.getMobile());
-		System.out.println("Email id         - "+customer.getEmail());
-		System.out.println("Age              - "+customer.getAge());
-		System.out.println("Gender           - "+customer.getGender());
-		System.out.println("Pan number       - "+customer.getPan());
-		System.out.println("Aadhar number    - "+customer.getAadhar());
-		System.out.println("Address          - "+customer.getAddress());
+    	System.out.println(zBank.getCustomerDetails(userId));
+    	
+//    	Customer customer = zBank.getCustomerDetails(userId);
+//		System.out.println("User id          - "+customer.getUserId());
+//		System.out.println("Name of customer - "+customer.getName());
+//		System.out.println("Mobile number    - "+customer.getMobile());
+//		System.out.println("Email id         - "+customer.getEmail());
+//		System.out.println("Age              - "+customer.getAge());
+//		System.out.println("Gender           - "+customer.getGender());
+//		System.out.println("Pan number       - "+customer.getPan());
+//		System.out.println("Aadhar number    - "+customer.getAadhar());
+//		System.out.println("Address          - "+customer.getAddress());
     }
     
-    private void printTransaction(List<Transaction> transactionList) {
-    	for(Transaction transaction : transactionList) {
-    		System.out.println("User id             "+transaction.getUserId());
-    		Instant instant = Instant.ofEpochMilli(transaction.getDateTime());
-    		
-    		System.out.println("Date & time         "+instant.atZone(ZoneId.systemDefault()));
-    		System.out.println("From account number "+transaction.getAccountNo());
-    		System.out.println("Transaction id      "+transaction.getTransactionId());
-    		System.out.println("Transaction with    "+transaction.getTransactionAccNo());
-    		System.out.println("Amount              "+transaction.getAmount());
-    		System.out.println("Debit/credit        "+transaction.getType());
-    		System.out.println("Description         "+transaction.getDescription());
-    		System.out.println("Opening balance     "+transaction.getOpenBalance());
-    		System.out.println("Closing balance     "+transaction.getCloseBalance());
-    		System.out.println("Status              "+transaction.getStatus()+"\n");
-    		
-    	}	
-    }
+//    private void printTransaction(List<Transaction> transactionList) {
+//    	for(Transaction transaction : transactionList) {
+//    		System.out.println("User id             "+transaction.getUserId());
+//    		Instant instant = Instant.ofEpochMilli(transaction.getDateTime());
+//    		
+//    		System.out.println("Date & time         "+instant.atZone(ZoneId.systemDefault()));
+//    		System.out.println("From account number "+transaction.getAccountNo());
+//    		System.out.println("Transaction id      "+transaction.getTransactionId());
+//    		System.out.println("Transaction with    "+transaction.getTransactionAccNo());
+//    		System.out.println("Amount              "+transaction.getAmount());
+//    		System.out.println("Debit/credit        "+transaction.getType());
+//    		System.out.println("Description         "+transaction.getDescription());
+//    		System.out.println("Opening balance     "+transaction.getOpenBalance());
+//    		System.out.println("Closing balance     "+transaction.getCloseBalance());
+//    		System.out.println("Status              "+transaction.getStatus()+"\n");
+//    		
+//    	}	
+//    }
 
 }
