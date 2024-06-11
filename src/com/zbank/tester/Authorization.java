@@ -48,8 +48,9 @@ public class Authorization {
 					+ "\n 5. Add new branch details \n 6. Get all the branch details \n 7. Get all account details of a customer \n 8. Get all the account details \n 9. Deactivate account \n"
 					+ " 10. Deactivate user \n 11. Change password \n 0. Logout ");
 			
- 
+			
 			select = bankScanner.nextInt();
+		
 			bankScanner.nextLine();
 			
 			switch(select) {

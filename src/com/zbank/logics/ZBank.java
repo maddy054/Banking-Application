@@ -41,9 +41,13 @@ public class ZBank {
 	}
 
 	public void addEmployees(Employee emploee,String password) throws BankingException{
-		password =  SHAHash.getHash(password);
-	    emploee.setPassword(password);
-		dbConnector.addEmployee(emploee);	
+		Integer lock = emploee.getUserId();
+		synchronized (lock) {
+			password =  SHAHash.getHash(password);
+		    emploee.setPassword(password);
+			dbConnector.addEmployee(emploee);	
+		}
+		
 	}
 	
 	public void addBranch(Branch branch) throws BankingException {
@@ -52,6 +56,7 @@ public class ZBank {
 	}
 	
 	public void addCustomer(Customer customer,String password) throws BankingException {
+		
 		password =  SHAHash.getHash(password);
 		customer.setPassword(password);
 		dbConnector.addCustomer(customer);
